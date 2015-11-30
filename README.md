@@ -60,12 +60,12 @@ I assess interest we'll figure out if some sort of selection system is needed.
 
 ### Project Iterations
 
-* **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Wallets and Signing/Serializing Transactions
-* **Iteration 2** - Networking Basics and Publishing Transactions to Single Peer
-* **Iteration 3** - Creating Blocks
-* **Iteration 4** - Publishing Blocks to Single Peer
-* **Iteration 5** - Validating Incoming Transactions and Blocks
-* **Iteration 6** - Extended Networking: Discovering Additional Peers and Forwarding Valid Blocks and Transactions
-* **Iteration 7** - Mining: Aggregating Transactions and Solving Blocks
-* **Iterations 8+** - Advanced Topics - Mining optimizations, Base58-Check encoding, multi-address wallets,
+* **[Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Wallets and Signing/Serializing Transactions
+* **Iteration 1** - Networking Basics and Publishing Transactions to Single Peer
+* **Iteration 2** - Creating Blocks
+* **Iteration 3** - Publishing Blocks to Single Peer
+* **Iteration 4** - Validating Incoming Transactions and Blocks
+* **Iteration 5** - Extended Networking: Discovering Additional Peers and Forwarding Valid Blocks and Transactions
+* **Iteration 6** - Mining: Aggregating Transactions and Solving Blocks
+* **Iterations 7+** - Advanced Topics - Mining optimizations, Base58-Check encoding, multi-address wallets,
 Wallet GUI, Node DNS Server, etc.
