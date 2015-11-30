@@ -31,8 +31,9 @@ when we get stuck on technical questions.
 
 ### Schedule
 
-We'll meet as a group on Mondays from 4:15 - 6:00 and on Fridays
-from 9:00 - 11:00. This will be in place of normal Friday review sessions.
+We'll meet as a group twice a week. My current plan is for these to happen
+Mondays from 4:15 - 6:00 and on Fridays from 9:00 - 11:00, with the
+Friday session being in place of normal Friday review sessions.
 
 ### Knowns and Unknowns
 
