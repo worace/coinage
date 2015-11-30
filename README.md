@@ -48,12 +48,12 @@ our collective problem-solving ability to resolve them.
 
 ### Participation / Admission
 
-Currently I'm planning to open the course to 12 students from Modules 2 - 4. Once
+Currently I'm planning to open the course to 10 - 12 students from Modules 2 - 4. Once
 I assess interest we'll figure out if some sort of selection system is needed.
 
 ### Project Iterations
 
-* **Iteration 1** - Creating Wallets and Signing/Serializing Transactions
+* **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Wallets and Signing/Serializing Transactions
 * **Iteration 2** - Networking Basics and Publishing Transactions to Single Peer
 * **Iteration 3** - Creating Blocks
 * **Iteration 4** - Publishing Blocks to Single Peer

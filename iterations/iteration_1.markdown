@@ -129,8 +129,8 @@ the specified output.
 
 __TODO__ - Include detailed walkthrough of an example transaction
 
-[Reference](http://bitcoin.stackexchange.com/questions/3374/how-to-redeem-a-basic-tx)
-[Ruby Reference](https://gist.github.com/Sjors/5574485)
+* [Reference](http://bitcoin.stackexchange.com/questions/3374/how-to-redeem-a-basic-tx)
+* [Ruby Reference](https://gist.github.com/Sjors/5574485)
 
 ### Verifying transactions
 
