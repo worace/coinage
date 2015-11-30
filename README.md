@@ -47,6 +47,12 @@ it's going to be up to all of us to collectively work out the details along
 the way. I'll be directing lots of questions to the group and relying on
 our collective problem-solving ability to resolve them.
 
+### Conceptual Overview
+
+This [notes doc](https://github.com/worace/coinage/blob/master/notes.md) has
+a high-level overview of many of the issues we'll need to solve during the
+project.
+
 ### Participation / Admission
 
 Currently I'm planning to open the course to 10 - 12 students from Modules 2 - 4. Once
