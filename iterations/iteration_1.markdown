@@ -18,22 +18,32 @@ Fortunately this process is fairly straightforward for us since
 there are plenty of tools out there that implement the underlying
 cryptography for us.
 
-We'll follow Bitcoin's lead and use a Public/Private Cryptographic
-algorith called the "Elliptic Curve Digital Signature Algorithm" or
-ECDSA. There's actually some pretty interesting math behind this which
-you can [read up on](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm),
-but what we need to know is that it's becoming a go-to algorithm for
-public-private key cryptography (as a replacement for RSA which had been the dominant
-standard since the 1970's).
+Bitcoin uses a cryptography algorithm called the "Elliptic Curve Digital
+Signature Algorithm" (ECDSA), but we're going to take a slightly simpler tack
+and use the slightly more pedestrian RSA public/private key algorithm.
+
+RSA and ECDSA both rely on mathematical operations that can be made
+asymmetrically difficult -- that is, they are trivially easy to complete
+in one direction, but immensely difficult to reverse. This is a great
+recipe for something like encryption -- we want things to be easy to
+encrypt (and to decrypt, if you have the key), but effectively impossible
+to decrypt if you don't have the key.
 
 To start with a basic wallet implementation, write a program which, when run, will
-look for a special hidden file on the user's computer (perhaps `~/.clarke` ?).
-If the file exists, the program will expect a valid wallet to exist there in
-the form of a public/private key pair. It should read this into memory and print
+look for a special set of wallet files on the user's computer. We'll use a common
+format for serializing RSA keys called `.pem`, so let's assume these files are
+`~/.wallet/public_key.pem` and `~/.wallet/private_key.pem`, respectively.
+
+When your wallet program runs, it should search for a valid wallet to exist in
+these files. It should read this into memory and print
 the public key (in general, we want to avoid printing a private key).
 
 If the program doesn't find this file, it should create it by first generating
-a keypair and then writing them to the wallet file.
+a keypair and then writing them to the appropriate public/private key files.
+
+(Technically RSA allows us to re-generate the public key from the private key,
+so storing the public key is somewhat optional -- you could simply re-generate
+it from the private key if you preferred to store just that.)
 
 ### Generating a Keypair
 
