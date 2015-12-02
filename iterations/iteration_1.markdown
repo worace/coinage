@@ -121,13 +121,25 @@ the sequence of that transaction's outputs.
 
 #### Transaction Output Structure
 
-When encoding a transaction output into a transaction, we'll use
-the following format:
+Remember that Transaction Outputs are the entries in the collective ledger
+which indicate the transfer of some amount of currency to a given
+user (as identified by their cryptographic public key).
 
-1. `8 bytes` - **Amount** - Value of the output
-2. `65 bytes` - **Receiving Address** - ECDSA Public Key to
-which the transaction is being assigned. In order to spend
-the output as an input to a subsequent transaction, the owner
+Structurally, a transaction output consists of 2 things: the amount
+of currency being transferred and the address to which it is being
+assigned.
+
+A TXO does not in and of itself attempt to prove the validity of the
+money being spent -- rather the network takes on this responsibility
+by verifying that the *transaction inputs* being consumed are valid.
+
+When encoding a transaction output into a transaction, we'll follow
+a similar approach using a structured JSON array containing:
+
+1. **Amount** - The Integer value of the output
+2. **Receiving Address** - PEM-formatted encoding of the **RSA Public Key** to which the
+amount in this output is being assigned. In order to spend
+this output as an input to a subsequent transaction, the owner
 will have to produce a valid signature for this transaction.
 
 #### Transaction Input Strucutre
