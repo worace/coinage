@@ -81,9 +81,18 @@ to figure out some way to mock that part out.
 
 #### Transaction Structure
 
-We'll use a modified version of Bitcoin's format for structuring a transaction.
+We'll use a much-simplified version of Bitcoin's format for representing a transaction.
 The important pieces of information to include here are the individual transaction
-inputs followed by the individual transaction outputs. However since we want
+inputs followed by the individual transaction outputs. The actual Bitcoin protocol
+accomplishes this by defining its own binary data format, which packs the various
+pieces of transaction info into a carefully sequenced series of bits.
+
+The transaction format is important
+
+For now, we're going to see if we can get away with serializing our
+transactions as JSON.
+
+However since we want
 to be able to send a transaction around as an easily-interpreted series
 of bits, we'll also need to encode in the message how many inputs and
 outputs are included (that way a receiver) knows how many bytes to read for
