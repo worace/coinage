@@ -147,18 +147,70 @@ will have to produce a valid signature for this transaction.
 When we want to "spend" a chunk of bitcoin that was transferred
 to us in a previous transaction, we'll use it as an "input"
 to a new transaction. When doing this, we'll talk about transaction
-"inputs", but it's important to remember that transaction inputs
+*inputs*, but it's important to remember that transaction inputs
 are really just outputs generated in previous transactions.
 
-1. `32 bytes` - **Transaction Hash** - SHA256 hash of the transaction
-that contains the trnasaction Output beign spent in this input
-2. `4 bytes` - **Transaction Output Index** - The numeric index of
+An input is a little more involved than an output because it needs
+to identify a few key pieeces of information:
+
+1. The previous transaction, in which the input we're trying to
+consume was originally generated (as an output). This transaction
+will be identified by its unique hash.
+2. The *index* of the output in that previous transaction (remember
+that a transaction contains multiple outputs, so to identify a specific
+one we need to specify its index in the sequence)
+3. A special *signature* proving that the person creating this transaction
+does in fact have own the input they are trying to spend. This piece is
+crucial to guaranteeing the security of the system.
+
+So what does this look like in a more concrete serialization format?
+Let's stick with the JSON approach and try to express a transaction
+input as a JSON array containing, in order, the following:
+
+1. **Transaction Hash** - SHA256 hash of the previous transaction
+that contains the transaction Output being spent by this input. This
+serves as an identifier for looking up that transaction among the chain
+of all previous transactions.
+2. **Transaction Output Index** - The zero-based numeric index of
 the specific output within the identified transaction which is being
-spent
-3. `70 bytes` - **Output Signature** - ECDSA Signature of the Public Key
-(address) to which the original output was assigned. Other users can verify
-this signature thus proving that the signing user has the authority to spend
-the specified output.
+spent.
+3. **Input Signature** - RSA Signature of the SHA256 hash of all contents
+from the current transaction. We'll cover hashing transactions in more detail,
+but in short, you would line up all the contents of the transaction, run them
+through SHA256, then take the resulting hexadecimal hash string and sign
+that with your private key.
+
+##### More on the Input Signature
+
+From the Bitcoin Protocol developer reference:
+
+> The entire transaction's outputs, inputs, and script (from the most recently-executed
+> OP_CODESEPARATOR to the end) are hashed.
+> The signature used by OP_CHECKSIG must be a valid signature for this hash and public key.
+> If it is, 1 is returned, 0 otherwise.
+
+The output signature of a transaction is essential to the security of the overall system
+because it guarantees 2 things.
+
+First, using your private key to sign a TXInput proves to the network that you are the
+valid owner of the corresponding TXOutput. This is because the output itself contains the
+public key associated with your private key, and other nodes on the network can use
+this public key to mathematically prove that your private key is the only one that
+could produce the given signature -- thus proving your ownership.
+
+However, it's not enough to just use the signature to prove ownership of the specified
+TXOutput -- we also need to prove that this input is intended to be included in this
+specific transaction.
+
+Technically we could use our private key to sign anything we wanted
+and it could still be proved to be associated with the known public key.
+But in order to pin the signature to the specific transaction, we use it to sign
+a very specific value -- the Hash of the transaction we are working on. We know that
+if someone tried to change the transaction context of the input, it would completely
+change the transaction hash, which would in turn invalidate the signature.
+
+Thus using the Input Signature to sign a hash of the whole transaction, we can
+prevent others from taking our signed input and using it in another transaction.
 
 ### Transaction Example
 
