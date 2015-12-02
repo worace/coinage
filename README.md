@@ -6,8 +6,6 @@ other cryptocurrencies by building our own simplistic cryptocurrency at Turing.
 
 Some main points:
 
-* Participation will be capped to a max number of students
-* Participation will be limited to students in modules 2, 3, and 4
 * Continuing participation depends on completing required iterations and assignments
 * We will meet twice a week in organized sessions, but most of the work will be
 done on your own time outside of class
