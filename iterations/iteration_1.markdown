@@ -212,6 +212,15 @@ change the transaction hash, which would in turn invalidate the signature.
 Thus using the Input Signature to sign a hash of the whole transaction, we can
 prevent others from taking our signed input and using it in another transaction.
 
+**A couple notes** - An alternative here would be to just sign all of the outputs
+of the transaction. This would simplify the process a bit since we wouldn't have to
+worry about "zeroing out" the signatures of the pending tx inputs so that we can sign them.
+But it also would in theory allow the signed input to be re-used in another transaction
+that had the same outputs (but possibly different inputs). Not sure if this represents
+a vulnerability or not.
+
+[More Info](https://en.bitcoin.it/wiki/OP_CHECKSIG)
+
 ### Transaction Example
 
 __TODO__ - Include detailed walkthrough of an example transaction
