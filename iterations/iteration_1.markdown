@@ -47,28 +47,29 @@ it from the private key if you preferred to store just that.)
 
 ### Generating a Keypair
 
-To generate keys, we'll want to use a library that implements ECDSA.
-In Ruby, [this gem](https://github.com/DavidEGrayson/ruby_ecdsa) is a great
-option (Ruby's OpenSSL library does include this, but the API is not very well documented).
+To generate keys, we'll want to use a library that implements RSA. Fortunately
+many languages include something like this in their standard library. In Ruby,
+the included `OpenSSL` module provides a good (albeit poorly documented) RSA
+implementation.
 
-Other languages will almost certainly have a convenient library providing
-this algorithm as well.
+**Note** - One of the main variables to control when using RSA is the length
+of your keys -- we'll use **2048-bit Keys**.
 
-__A Note on Curves:__ One trick with ECDSA is that we need to agree on which
-"curve" we're going to use for exchanging keys. Bitcoin uses a curve
-called "secp256k1", and we'll follow this convention as well. When
-you're generating keypairs with ECDSA make sure you specify this curve.
+Consult [this code snippet](https://github.com/worace/coinage/blob/master/snippets/rsa.rb)
+for some detailed examples of working with the RSA implementation included in Ruby's
+OpenSSL package to generate keys and encrypt and decrypt messages.
 
 ### 2 - Generating a Transaction
 
 A "transaction" represents a transfer of currency from one address to another.
 As we'll see, we use our private key to _sign_ this transfer,
-mathematically proving that we are authorized to transfer this money.
+mathematically proving that we are authorized to transfer the specified
+money.
 
 Fundamental to creating a Transaction is the idea of "Transaction Outputs" --
 individual chunks of currency that are available to be transferred.
-When we "spend" coins in Bitcoin, we are actually transferring Transaction Outputs. This
-transfer will in turn generate new Transaction Outputs that could
+When we "spend" coins in Bitcoin, we are actually transferring *Unspent Transaction Outputs*.
+This transfer will in turn generate new Transaction Outputs that could
 later be spent by the new owner as an input to a different transaction.
 
 Thus we can think of a transaction as a collection of inputs on
@@ -87,23 +88,26 @@ inputs followed by the individual transaction outputs. The actual Bitcoin protoc
 accomplishes this by defining its own binary data format, which packs the various
 pieces of transaction info into a carefully sequenced series of bits.
 
-The transaction format is important
+The transaction format is important because we'll eventually need
+to verify transactions by running them through a Hashing Function.
+As we know, the output of a hash function depends very precisely on
+the ordering and contents of the input data -- So if we all want to be
+able to get the same results from hashing a transaction, we need
+to make sure we're feeding in the transaction data in the same
+order and format.
 
-For now, we're going to see if we can get away with serializing our
-transactions as JSON.
+Bitcoin's binary formats solve this problem and also provide a very
+compact storage format, but for now, we're going to see if we can get
+away with a more readable format by serializing our transactions as JSON.
 
-However since we want
-to be able to send a transaction around as an easily-interpreted series
-of bits, we'll also need to encode in the message how many inputs and
-outputs are included (that way a receiver) knows how many bytes to read for
-the transaction.
+With that in mind, let's say that a Transaction can be represented as a simple
+nested JSON array:
 
-This breaks the transaction down based on the following sequence:
+1. Array of Transaction Inputs
+2. Array of Transaction Outputs
 
-1. `4 bytes` - **Input Counter** - How many inputs are included
-2. `Variable` - **Inputs** - One or more transaction inputs
-3. `4 bytes` **Output Counter** - How many outputs are included
-4. `Variable` **Outputs** - One or more transaction outputs
+This would look something like this: `"[["Input 1", "Input 2"], ["Output 1", "Output 2"]]"`.
+Except that our inputs and outputs will be more complicated than simple Strings.
 
 __Looking up Transaction Outputs__
 
