@@ -277,6 +277,99 @@ And here's that same transaction formatted as JSON:
 * [Reference](http://bitcoin.stackexchange.com/questions/3374/how-to-redeem-a-basic-tx)
 * [Ruby Reference](https://gist.github.com/Sjors/5574485)
 
+### Hashing Transactions
+
+To produce a Hash of a transaction, we need to run all of the transaction
+contents through SHA256. A straightforward way to do this is to simply hash the
+JSON-serialized version of the transaction from above.
+
+Note that the example in the last section included some additional lines
+and indentation for formatting, but when we look to hash transactions we'll
+want to use raw unformatted JSON to make sure we get consistent results.
+
+So, you can think of hashing a transaction as:
+
+```
+SHA256( json-serialized( transaction ) )
+```
+
+For the hash of the example transaction above, this would look like (in ruby):
+
+```ruby
+require "digest"
+require "json"
+txn = [
+        [
+          [
+		    "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
+            0,
+            "psO/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="]
+	      ]
+	    ],
+	    [
+	      [
+		    5,
+            "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
+          ]
+	    ]
+     ]
+txn_json = txn.to_json
+=> "[[[\"9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e\",0,\"psO/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg==\"]],[[5,\"-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\\nPsn/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe/Mnyr\\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\\nuwIDAQAB\\n-----END PUBLIC KEY-----\\n\"]]]"
+txn_hash = Digest::SHA256.hexdigest(txn_json)
+=> "7fc7ff0e187867a8820ae3e6561c9dd84bcf97e9c6b9c54a64a232546693d894"
+```
+
+### Signing Transaction Inputs
+
+Recall that to generate a valid Transaction Input, the sender needs to include a
+valid RSA signature of a Hash of the contents of the transaction into which they
+are trying to embed the signature.
+
+This presents a small problem, since you can't include in the signature a hash
+whose contents depend on the signature in the first place.
+
+To get around this, let's sign inputs with a Hash of only the *Transaction Outputs*
+included in the transaction. This still guarantees that an attacker could not take
+your signature and use it to validate the same input in the context of a different
+transaction, and it removes the chicken-and-egg problem around signing inputs.
+
+Thus, we can think of the signature for a Transaction Input as:
+
+```
+RSA-signature-with-SHA256( json-serialized( transaction-outputs ) )
+```
+
+So, for our sample transaction above, this would look like:
+
+```ruby
+require "digest"
+require "json"
+require "openssl"
+
+txn = [
+        [
+          [
+		    "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
+            0,
+            "psO/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="
+	      ]
+	    ],
+	    [
+	      [
+		    5,
+            "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
+          ]
+	    ]
+     ]
+outputs = txn.last
+outputs_json = outputs.to_json
+
+private_key = OpenSSL::PKey.read("/Path/to/my/key.pem")
+=> #<OpenSSL::PKey::RSA:0x007f9218991270>
+
+signature = private_key.sign(OpenSSL::Digest::SHA256.new, outputs_json)
+```
+
 ### Verifying transactions
 
 As transactions get propagated to the network, clients will need to verify
