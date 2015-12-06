@@ -27,7 +27,7 @@ The header contains the following pieces of data:
 to the previous one)
 2. **Transactions Hash** - Hash of all the transactions contained in this block
 3. **Block Timestamp** - Time the block was created, in seconds since Unix epoch
-4. **Difficulty Target** - The hashing difficulty against which this block was mined (more
+4. **Difficulty Target** - The hashing difficulty against which this block was mined, encoded as a Hex string (more
 on how this target gets set later)
 5. **Nonce** - A special value used to "complete" the block by causing it to generate a hash
 value lower than the required difficulty target. This value will start at 0 and be incremented
@@ -108,3 +108,9 @@ one that combines with the rest of the block header contents to give us a hash b
 the desired difficulty threshold.
 
 ### Determining the Difficulty Threshold for a New Block
+
+### Hashing Transactions
+
+To generate the block's transaction hash, generate the hexadecimal hashes for
+the individual transactions as described in Iteration 0, then concatenate them,
+and SHA256 hash the resulting hex string.
