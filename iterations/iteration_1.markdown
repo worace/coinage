@@ -31,6 +31,7 @@ to the previous one)
 on how this target gets set later)
 5. **Nonce** - A special value used to "complete" the block by causing it to generate a hash
 value lower than the required difficulty target
+6. **Block Hash** - A SHA256 hash of the other contents in this block's header
 
 ### The "Coinbase" Transaction
 
@@ -57,5 +58,24 @@ coinbase transaction (and ensuring that only one exists) is part of their
 process for validating a block.
 
 ### Generating a Block's Hash
+
+Just like we used hashing to validate transactions by fingerprinting them in
+the last iteration, hashing is important for both uniquely identifying blocks
+and for protecting them against tampering.
+
+To generate a block's hash, we'll simply hash the concatenated
+remaining contents of its header:
+
+```
+SHA256 Hash ( previous block hash + transactions hash + timestamp + difficulty target + nonce )
+```
+
+Including all of these contents in a block's hash means that tampering with any
+1 piece of content will change the hash (and invalidate the block by pushing the hash
+back above the allowed difficulty target). Additionally, a block's hash is what places
+it in the chain, since any child blocks will refer back to it by "linking" to its
+hash. Thus changing a block's hash causes it to become the site of a new "fork"
+in the chain, disconnecting any children that had previously linked to it from the
+newly altered block.
 
 ### Mining Your First Block
