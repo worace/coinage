@@ -30,7 +30,8 @@ to the previous one)
 4. **Difficulty Target** - The hashing difficulty against which this block was mined (more
 on how this target gets set later)
 5. **Nonce** - A special value used to "complete" the block by causing it to generate a hash
-value lower than the required difficulty target
+value lower than the required difficulty target. This value will start at 0 and be incremented
+by miners until they find an appropriate hash value
 6. **Block Hash** - A SHA256 hash of the other contents in this block's header
 
 ### The "Coinbase" Transaction
@@ -79,3 +80,31 @@ in the chain, disconnecting any children that had previously linked to it from t
 newly altered block.
 
 ### Mining Your First Block
+
+So how do we create a block? Blocks are sometimes compared to puzzles or locked boxes.
+Any node can generate a new block by assembling the various contents listed above.
+
+However, in order for the block to be accepted by the network, its must pass the
+expected difficulty threshold. Remember that hashes are simply large numbers
+(in the case of SHA256, a number between 0 and 2^256). Our difficulty target
+will be another large number, and meeting the difficulty target simply means
+producing a SHA256 hash *lower than* the provided difficulty target.
+
+Remember also that the hash value of a given input is not predictable or organized.
+Suppose that you were mining against a difficulty target of `2^128` (a large number that
+is still much much smaller than the possible max value of `2^256`). It's conceivable
+that your block would produce a hash smaller than `2^128` on the first try, but
+is exceedingly unlikely.
+
+This is where the actual "mining" process comes in. In order to get your block to
+generate a valid (lower-than-the-difficulty) hash, you need to try hasing a different
+block header. Since the other header components are somewhat "locked" (they depend on
+the actual contents of the block), your only option is to change the *nonce*. And,
+since we can't predict what input values will generate the hash value we're hoping for,
+our best bet is simply to change the nonce (usually by incrementing it) and try again.
+
+Thus mining becomes a brute force exercise in trying new nonce values until we find the
+one that combines with the rest of the block header contents to give us a hash below
+the desired difficulty threshold.
+
+### Determining the Difficulty Threshold for a New Block
