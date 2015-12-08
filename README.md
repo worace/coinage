@@ -58,8 +58,8 @@ I assess interest we'll figure out if some sort of selection system is needed.
 
 ### Project Iterations
 
-* **[Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Wallets and Signing/Serializing Transactions
-* **Iteration 1** - Creating Blocks
+* **[Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_0.markdown)** - Creating Wallets and Signing/Serializing Transactions
+* **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Blocks
 * **Iteration 2** - Networking Basics and Publishing Transactions to Single Peer
 * **Iteration 3** - Publishing Blocks to Single Peer
 * **Iteration 4** - Validating Incoming Transactions and Blocks
