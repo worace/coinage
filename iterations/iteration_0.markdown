@@ -392,3 +392,10 @@ transaction (as opposed to a separate transaction). This allows
 a single input to be split into multiple outputs at once, and also
 guarantees that our change and transfer outputs can't be separated from
 one another.
+
+### Note on Hex Strings
+
+We'll be working with hexadecimal representations of SHA hashes a lot, and sometimes
+passing these hashes into another hashing function. For these to give us consistent
+results, we'll agree on the convention of representing Hex strings using the
+digits 0-9 and the lowercase letters "a" - "f"
