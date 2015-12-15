@@ -101,13 +101,22 @@ compact storage format, but for now, we're going to see if we can get
 away with a more readable format by serializing our transactions as JSON.
 
 With that in mind, let's say that a Transaction can be represented as a simple
-nested JSON array:
+JSON object containing 3 keys:
 
-1. Array of Transaction Inputs
-2. Array of Transaction Outputs
+1. **inputs** - an array of transaction inputs following the structure defined below
+2. **outputs** - an array of transaction outputs following the structure defined below
+3. **hash** - a SHA256 hash of the transaction; the hash process will be discussed in detail later
 
-This would look something like this: `"[["Input 1", "Input 2"], ["Output 1", "Output 2"]]"`.
-Except that our inputs and outputs will be more complicated than simple Strings.
+This would look something like this:
+
+```json
+{"inputs":[],
+ "outputs":[],
+ "hash":"some-sha-hash"
+}
+```
+
+Except that the input and output keys would contain actual collections of inputs and outputs.
 
 __Looking up Transaction Outputs__
 
@@ -134,13 +143,22 @@ money being spent -- rather the network takes on this responsibility
 by verifying that the *transaction inputs* being consumed are valid.
 
 When encoding a transaction output into a transaction, we'll follow
-a similar approach using a structured JSON array containing:
+a similar approach using a JSON object containing:
 
-1. **Amount** - The Integer value of the output
-2. **Receiving Address** - PEM-formatted encoding of the **RSA Public Key** to which the
+1. **amount** - The Integer value of the output
+2. **address** - PEM-formatted encoding of the **RSA Public Key** to which the
 amount in this output is being assigned. In order to spend
 this output as an input to a subsequent transaction, the owner
 will have to produce a valid signature for this transaction.
+
+__Example:__
+
+```json
+{
+  "amount": 5,
+  "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
+}
+```
 
 #### Transaction Input Strucutre
 
@@ -151,7 +169,7 @@ to a new transaction. When doing this, we'll talk about transaction
 are really just outputs generated in previous transactions.
 
 An input is a little more involved than an output because it needs
-to identify a few key pieeces of information:
+to identify a few key pieces of information:
 
 1. The previous transaction, in which the input we're trying to
 consume was originally generated (as an output). This transaction
@@ -165,20 +183,34 @@ crucial to guaranteeing the security of the system.
 
 So what does this look like in a more concrete serialization format?
 Let's stick with the JSON approach and try to express a transaction
-input as a JSON array containing, in order, the following:
+input as a JSON object containing the following keys:
 
-1. **Transaction Hash** - SHA256 hash of the previous transaction
+1. **source_hash** - SHA256 hash of the previous transaction
 that contains the transaction Output being spent by this input. This
 serves as an identifier for looking up that transaction among the chain
 of all previous transactions.
-2. **Transaction Output Index** - The zero-based numeric index of
+2. **source_index** - The zero-based numeric index of
 the specific output within the identified transaction which is being
 spent.
-3. **Input Signature** - RSA Signature of the SHA256 hash of all contents
+3. **signature** - RSA Signature of the SHA256 hash of all contents
 from the current transaction (minus the signatures). We'll cover hashing transactions in more detail,
 but in short, you would line up all the contents of the transaction, run them
 through SHA256, then take the resulting SHA hash and sign
 that with your private key.
+
+__Example:__
+
+```json
+{
+  "source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
+  "source_index": 0,
+  "signature": "psO\/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt\/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="
+}
+```
+
+This example would represent a transaction input which is attempting to spend
+the **transaction output** contained at index 0 among all of the outputs
+contained within transaction "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e".
 
 ##### More on the Input Signature
 
@@ -223,26 +255,11 @@ a vulnerability or not.
 
 ### Transaction Example
 
-To represent a full transaction, we take the structures outlined above
-and embed them in a sequence, starting with the inputs then adding
-the outputs.
+To represent a full transaction, we take the input and output structures outlined above
+and embed them within a larger transaction structure. We then add a special "hash" key
+containing the SHA256 hash of the transaction, and that represents our transaction.
 
-Here's an example Transaction data structure in [EDN](http://www.compoundtheory.com/clojure-edn-walkthrough/):
-
-```clj
-{:inputs [{:source-hash "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"
-           :source-index 0
-           :signature "psO/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="}
-	     ]
- :outputs [{:amount 5
-            :address "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
-			}
-		  ]
- :hash "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"
-}
-```
-
-And here's that same transaction formatted as JSON:
+Here's an example formatted as json:
 
 ```json
 {
@@ -263,8 +280,57 @@ And here's that same transaction formatted as JSON:
 }
 ```
 
-* [Reference](http://bitcoin.stackexchange.com/questions/3374/how-to-redeem-a-basic-tx)
-* [Ruby Reference](https://gist.github.com/Sjors/5574485)
+### Signing Transaction Inputs
+
+Now let's look at how the "signature" field of each transaction input is generated.
+
+Recall that to generate a valid Transaction Input, the sender needs to include a
+valid RSA signature of a Hash of the contents of the transaction into which they
+are trying to embed the signature.
+
+However this presents a small problem since the Transaction Hash itself is dependent
+on the signature (since the signature is part of the input and this is part of the
+transaction).
+
+To get around this, we'll generate the signature for each input by signing a
+representation of the transaction *without the signatures*.
+
+To generate the input to this signature, we'll do the following:
+
+1. Concatenate the *source_hash* and *source_index* of each input
+2. Concatenate those strings into a single *inputs_string*
+3. Concatenate the *amount* and *address* fields of each output
+4. Concatenate those strings into a single *outputs_string*
+5. Concatenate the *inputs_string* and *outputs_string*
+
+We'll treat the output of step 5 as a "signable transaction string" which
+we'll use to generate the unlocking signature for each of our inputs.
+
+Thus, we can think of the signature for a Transaction Input as:
+
+RSA-signature-with-SHA256( json-serialized( signable-transaction-string ) )
+```
+
+So, given the example input and output shown above, we could look at a ruby example like so:
+
+
+```ruby
+
+inputs = JSON.parse('[{"source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e", "source_index": 0}]')
+outputs = JSON.parse('[{"amount": 5, "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"}]')
+
+inputs_string = inputs.map { |i| i["source_hash"] + i["source_index"] }.join
+outputs_string = outputs.map { |i| i["amount"].to_s + i["address"] }.join
+
+signable_transaction_string = inputs_string + outputs_string
+
+private_key = OpenSSL::PKey.read("/Path/to/my/key.pem")
+=> #<OpenSSL::PKey::RSA:0x007f9218991270>
+
+signature = private_key.sign(OpenSSL::Digest::SHA256.new, signable_transaction_string)
+```
+
+This signature would then be inserted into each transaction input to validate it
 
 ### Hashing Transactions
 
@@ -308,56 +374,6 @@ txn_hash = Digest::SHA256.hexdigest(txn_json)
 => "7fc7ff0e187867a8820ae3e6561c9dd84bcf97e9c6b9c54a64a232546693d894"
 ```
 
-### Signing Transaction Inputs
-
-Recall that to generate a valid Transaction Input, the sender needs to include a
-valid RSA signature of a Hash of the contents of the transaction into which they
-are trying to embed the signature.
-
-This presents a small problem, since you can't include in the signature a hash
-whose contents depend on the signature in the first place.
-
-To get around this, let's sign inputs with a Hash of only the *Transaction Outputs*
-included in the transaction. This still guarantees that an attacker could not take
-your signature and use it to validate the same input in the context of a different
-transaction, and it removes the chicken-and-egg problem around signing inputs.
-
-Thus, we can think of the signature for a Transaction Input as:
-
-```
-RSA-signature-with-SHA256( json-serialized( transaction-outputs ) )
-```
-
-So, for our sample transaction above, this would look like:
-
-```ruby
-require "digest"
-require "json"
-require "openssl"
-
-txn = [
-        [
-          [
-		    "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
-            0,
-            "psO/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="
-	      ]
-	    ],
-	    [
-	      [
-		    5,
-            "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
-          ]
-	    ]
-     ]
-outputs = txn.last
-outputs_json = outputs.to_json
-
-private_key = OpenSSL::PKey.read("/Path/to/my/key.pem")
-=> #<OpenSSL::PKey::RSA:0x007f9218991270>
-
-signature = private_key.sign(OpenSSL::Digest::SHA256.new, outputs_json)
-```
 
 ### Verifying transactions
 
