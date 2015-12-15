@@ -35,6 +35,14 @@ end
 
 class Transaction < Struct.new(:inputs, :outputs, :wallet)
 
+  # Transaction.coinbase("my-key")
+
+  def self.coinbase(pub_key, amount = 25)
+    # generate txn that gives 25 coins to that key
+    # with no inputs
+    self.new([], [TransactionOutput.new(amount, pub_key)])
+  end
+
   def sign!(wallet)
     inputs.each do |i|
       i.signature = wallet.sign(signable_json)
@@ -43,6 +51,10 @@ class Transaction < Struct.new(:inputs, :outputs, :wallet)
 
   def to_json
     [inputs, outputs].to_json
+  end
+
+  def hash
+    Digest::SHA256.hexdigest(to_json)
   end
 
   def signable_json
@@ -86,10 +98,78 @@ puts transaction.to_json
 transaction.sign!(wallet)
 puts transaction.to_json
 
-
-
-coinbase_out = TransactionOutput.new(25, wallet.public_pem)
-
-coinbase_txn = Transaction.new([], [coinbase_out])
+coinbase_txn = Transaction.coinbase(wallet.public_pem)
 
 puts coinbase_txn.to_json
+
+# block contains multiple transactions
+
+class Block
+  attr_reader :parent_hash, :transactions, :target, :nonce, :timestamp
+
+  def default_target
+    # get desired block-generation timeframe
+    # (1 minute)
+    # look at last N blocks
+    # see what the average freq spacing
+    # was of those blocks
+
+    # get ratio of that average spacing
+    # vs. desired freq
+
+    # 155500 - 155490 -> 10
+    # 155490 - 155470 -> 20
+    # 155470 - 155430 -> 30
+    # 155430 - 0      -> 155430
+    # multiply target of last block
+    # by this ratio
+    "00000" + "F" * 59
+  end
+
+  def initialize(transactions, parent_hash, target = default_target)
+    @transactions = transactions
+    @parent_hash = parent_hash
+    @target = target
+    @timestamp = Time.now.to_i
+    @nonce = 0
+  end
+
+  def transactions_hash
+    tx_hashes = transactions.map(&:hash).join
+    Digest::SHA256.hexdigest(tx_hashes)
+  end
+
+  def header_values
+    [parent_hash,
+     transactions_hash,
+     timestamp,
+     target,
+     nonce].join
+  end
+
+  def hash
+    Digest::SHA256.hexdigest(header_values)
+  end
+
+  def block_hash_below_target?
+    hash.to_i(16) < target.to_i(16)
+  end
+
+  def valid?
+    block_hash_below_target?
+  end
+
+  def increment_nonce!
+    @nonce += 1
+  end
+
+  def mine!
+    until valid?
+      increment_nonce!
+    end
+    self
+  end
+end
+
+block = Block.new([coinbase_txn], "0" * 64)
+
