@@ -271,7 +271,7 @@ Here's an example formatted as json:
     }
   ],
   "outputs": [
-    {
+    {j
       "amount": 5,
       "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
     }
@@ -308,7 +308,7 @@ we'll use to generate the unlocking signature for each of our inputs.
 
 Thus, we can think of the signature for a Transaction Input as:
 
-RSA-signature-with-SHA256( json-serialized( signable-transaction-string ) )
+RSA-signature-with-SHA256( signable-transaction-string )
 
 So, given the example input and output shown above, we could look at a ruby example like so:
 
@@ -347,7 +347,7 @@ follow these steps:
 5. Concatenate the *inputs_string* and *outputs_string*
 
 ```
-SHA256( json-serialized( hashable-transaction-string ) )
+SHA256( hashable-transaction-string )
 ```
 
 For the hash of the example transaction above, this would look like (in ruby):
