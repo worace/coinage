@@ -276,6 +276,7 @@ Here's an example formatted as json:
       "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
     }
   ],
+  timestamp: 1450310016721,
   "hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"
 }
 ```
@@ -335,16 +336,16 @@ This signature would then be inserted into each transaction input to validate it
 To produce a Hash of a transaction, we need to run all of the transaction
 contents through SHA256. To do this, we'll follow a similar process to
 the signing process above, except now we'll include the transaction input
-signatures as part of our hash content.
+signatures and the timestamp as part of our hash content.
 
 So, to get the hashable string representation of a transaction, we'll
 follow these steps:
 
-1. Concatenate the *source_hash*, *source_index*, and signature of each input
+1. Concatenate the *source_hash*, *source_index*, and *signature* of each input
 2. Concatenate those strings into a single *inputs_string*
 3. Concatenate the *amount* and *address* fields of each output
 4. Concatenate those strings into a single *outputs_string*
-5. Concatenate the *inputs_string* and *outputs_string*
+5. Concatenate the *inputs_string* with the *outputs_string* and the *timestamp*
 
 ```
 SHA256( hashable-transaction-string )
@@ -355,11 +356,12 @@ For the hash of the example transaction above, this would look like (in ruby):
 ```ruby
 inputs = JSON.parse('[{"source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e", "source_index": 0, "signature": "some-signature"}]')
 outputs = JSON.parse('[{"amount": 5, "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"}]')
+timestamp = (Time.now.to_f * 1000).to_i
 
 inputs_string = inputs.map { |i| i["source_hash"] + i["source_index"] + i["signature"] }.join
 outputs_string = outputs.map { |i| i["amount"].to_s + i["address"] }.join
 
-hashable_transaction_string = inputs_string + outputs_string
+hashable_transaction_string = inputs_string + outputs_string + timestamp.to_s
 
 txn_hash = Digest::SHA256.hexdigest(hashable_transaction_string)
 ```
