@@ -6,24 +6,29 @@ detailed analysis and descriptions are included in the [iterations](https://gith
 folder, but if you just need a quick lookup on something, this
 is probably the best place.
 
-### Serialization
-
 ### Wallets
+
+A "wallet" is just an RSA public/private keypair. The public key
+serves as your address for receiving funds from other users, and
+the private key serves as your means of signing these funds to unlock
+them for spending.
+
+* Algorithm: RSA
+* Key Size: 2048
+* Serialization: Use PEM encoding format
 
 ### Transaction Structure
 
 #### Inputs
 
-##### Unsigned
+Transaction inputs spend funds by identifying a transaction output
+from a previous transaction.
 
-```json
-{
-  "source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
-  "source_index": 0,
-}
-```
+The previous output is identified by a transaction hash (identifying which transaction)
+and an index (identifying which output within the list of outputs in that txn.)
 
-##### Signed
+Additionally, an input contains an RSA signature from the appropriate
+private key.
 
 ```json
 {
@@ -86,7 +91,61 @@ Coinbase txn has no inputs.
 
 #### Unmined
 
+(Nonce value of `0` and block hash greater than target)
+
+```json
+{
+    "header": {
+        "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "transactions_hash": "203a0e37fa56a530f678d6331baf83a7b72d5d67c189aeb3ca17ed8a2a5bc654",
+        "target": "0000100000000000000000000000000000000000000000000000000000000000",
+        "timestamp": 1450564013,
+        "nonce": 0,
+        "hash": "65cc0cff6f61c81443152ec64fa7ac3d26733173eea6235e0ef4f986e31f9836"
+    },
+    "transactions": [
+        {
+            "inputs": [],
+            "outputs": [
+                {
+                    "amount": 25,
+                    "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+                }
+            ],
+            "timestamp": 1450564013887,
+            "hash": "933de73b476eb420aadc3c0e5959c6b0e3d1a58c4f997bd60bcbdbb5a0beeb90"
+        }
+    ]
+}
+```
+
 #### Mined
+
+```json
+{
+    "header": {
+        "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "transactions_hash": "203a0e37fa56a530f678d6331baf83a7b72d5d67c189aeb3ca17ed8a2a5bc654",
+        "target": "0000100000000000000000000000000000000000000000000000000000000000",
+        "timestamp": 1450564013,
+        "nonce": 1354641,
+        "hash": "000002b889bb79228ff41f86a65e2e0e143955cf746c2a33ed223d2701cd9c72"
+    },
+    "transactions": [
+        {
+            "inputs": [],
+            "outputs": [
+                {
+                    "amount": 25,
+                    "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+                }
+            ],
+            "timestamp": 1450564013887,
+            "hash": "933de73b476eb420aadc3c0e5959c6b0e3d1a58c4f997bd60bcbdbb5a0beeb90"
+        }
+    ]
+}
+```
 
 ### Working with Hexadecimal
 
@@ -98,4 +157,11 @@ That is, `7fa18e`, not `7FA18E`.
 
 ### JSON Conventions
 
+When serializing structures as JSON, use `snake_case` key names.
+
+That is, `{"pizza_pie": "lol"}`, not `{"pizzaPie": "lol"}`
+
 ### Timestamps
+
+Use Unix epoch timestamps. Some instances will call for seconds
+and some for milliseconds.
