@@ -184,3 +184,76 @@ target)
 ```
 
 ### Determining the Difficulty Threshold for a New Block
+
+The **target** against which blocks are mined changes over time. This
+is important because it allows the network to calibrate the difficulty of
+mining a block and thus control the frequency with which new blocks
+are generated.
+
+In Bitcoin's early days, blocks were mined against a relatively easy target because
+there were very few active miners in the network. Nowadays the computing power
+of the network is tremendous, and if we continued to mine against the same initial
+targets, the network would see new blocks generated within seconds.
+
+The target is represented as a 64-bit hexadecimal number (the same length
+as SHA-256 hashes), and thus has a value between 0 and (2^256 - 1).
+
+To figure out the new difficulty target, we'll use the following algorithm:
+
+1. Pull the most recent 10 blocks from the blockchain
+2. Use the timestamp of each block to determine the average
+spacing between sequential blocks
+3. Find the ratio between this time spacing and the desired
+block frequency (Currently **2 minutes**)
+4. Multiply the target of the last block by this ratio to
+find the new target.
+
+
+**Example**
+
+Suppose we were calculating the new target based on the most recent
+3 blocks rather than 10.
+
+Suppose the timestamps of the last 3 blocks were:
+
+
+```
+1450564560
+1450564690
+1450564820
+```
+
+The average spacing among these blocks is 130 seconds:
+
+```
+1450564690 - 1450564560 = 130
+1450564820 - 1450564690 = 130
+130 + 130 / 2 = 130
+```
+
+Comparing 130 to our desired frequency (120 seconds) gives us:
+
+```
+130 / 120 = 1.0833333333333333
+```
+
+Suppose the target of the most recent block was `0x0000100000000000000000000000000000000000000000000000000000000000`
+which represents the number `110427941548649020598956093796432407239217743554726184882600387580788736`.
+
+To get our next target, we multiply the last target by the frequency ratio
+
+```
+110427941548649020598956093796432407239217743554726184882600387580788736 * 1.0833333333333333
+= 1.1963027001103643 x 10^71
+```
+
+Finally we can truncate this value to an integer and represent it as hex:
+
+```
+0x000011555555555554f78e05078a4df24231327991845248bf80000000000000
+```
+
+Notice that this example results in **increasing** the target. This works out correctly since
+we were previously generating blocks at a frequency slower than desired (130 seconds vs. 120 seconds).
+This means we should lower the target slightly to make mining blocks easier, and we can
+do this by multiplying the last target by a ratio greater than 1.
