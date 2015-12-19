@@ -49,6 +49,7 @@ private key.
 
 #### Full Example
 
+```json
 {
   "inputs": [
     {
@@ -66,6 +67,8 @@ private key.
   timestamp: 1450310016721,
   "hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"
 }
+```
+
 
 #### Coinbase
 
