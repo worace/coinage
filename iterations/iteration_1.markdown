@@ -58,6 +58,22 @@ It's up to other nodes on the network to ensure that checking for a proper
 coinbase transaction (and ensuring that only one exists) is part of their
 process for validating a block.
 
+**Example:**
+
+```json
+{
+    "inputs": [],
+    "outputs": [
+        {
+            "amount": 25,
+            "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+        }
+    ],
+    "timestamp": 1450565806588,
+    "hash": "789509258c985783a0c6f99a29725a797bcdcaf3a94c17b077a228fd2a572fa9"
+}
+```
+
 ### Generating a Block's Hash
 
 Just like we used hashing to validate transactions by fingerprinting them in
