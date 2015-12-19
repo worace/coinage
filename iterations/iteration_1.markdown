@@ -257,3 +257,11 @@ Notice that this example results in **increasing** the target. This works out co
 we were previously generating blocks at a frequency slower than desired (130 seconds vs. 120 seconds).
 This means we should lower the target slightly to make mining blocks easier, and we can
 do this by multiplying the last target by a ratio greater than 1.
+
+Every mining node should follow this process to figure out the next target whenever they prepare to mine
+a new block.
+
+When receiving blocks from other nodes, clients should validate that the provided target matches
+this formula. Also note that in practice you should allow some margin of error to
+account for rounding and whatnot -- a target within 1% of what your node expects should
+be accepted.
