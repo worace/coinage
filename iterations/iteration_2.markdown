@@ -1,4 +1,4 @@
-# Iteration 1 - Working with the BlockChain
+# Iteration 2 - Working with the BlockChain
 
 ## Identifying Unspent Transaction Outputs
 
