@@ -51,17 +51,12 @@ This [notes doc](https://github.com/worace/coinage/blob/master/notes.md) has
 a high-level overview of many of the issues we'll need to solve during the
 project.
 
-### Participation / Admission
-
-Currently I'm planning to open the course to 10 - 12 students from Modules 2 - 4. Once
-I assess interest we'll figure out if some sort of selection system is needed.
-
 ### Project Iterations
 
 * **[Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_0.markdown)** - Creating Wallets and Signing/Serializing Transactions
-* **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating Blocks
-* **Iteration 2** - Networking Basics and Publishing Transactions to Single Peer
-* **Iteration 3** - Publishing Blocks to Single Peer
+* **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating and Mining Blocks
+* **Iteration 2** - Working with the BlockChain -- checking balances and generating payment transactions
+* **Iteration 3** - Network Protocol -- TCP basics and defining expected message types
 * **Iteration 4** - Validating Incoming Transactions and Blocks
 * **Iteration 5** - Extended Networking: Discovering Additional Peers and Forwarding Valid Blocks and Transactions
 * **Iteration 6** - Mining: Aggregating Transactions and Solving Blocks
