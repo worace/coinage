@@ -282,3 +282,19 @@ When receiving blocks from other nodes, clients should validate that the provide
 this formula. Also note that in practice you should allow some margin of error to
 account for rounding and whatnot -- a target within 1% of what your node expects should
 be accepted.
+
+### Saving New Blocks
+
+Once a new block is successfully mined, you'll want to add it to your copy of the
+block chain. Eventually this will need to be backed by some form of persistent storage
+(a simple file or perhaps something more sophisticated like a database). But for now the
+important thing is that you store the blocks in some sequential data structure (Array, List,
+Vector, etc). Once a new block is produced, it should be added to the end of the chain,
+becoming the top or most recent block.
+
+Being able to access the block chain in this way will be important in the next iteration,
+as we start to work through basic queries and manipulations of the chain. Remember
+that the block chain is the ultimate source of all information about transactions
+in the network's shared ledger, so when we want to know about, say, the balance of
+coins available to a given key, we'll need to search through the chain to find
+all transaction outputs assigned to that key.
