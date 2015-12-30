@@ -211,7 +211,7 @@ there were very few active miners in the network. Nowadays the computing power
 of the network is tremendous, and if we continued to mine against the same initial
 targets, the network would see new blocks generated within seconds.
 
-The target is represented as a 64-bit hexadecimal number (the same length
+The target is represented as a 64-digit hexadecimal number (the same length
 as SHA-256 hashes), and thus has a value between 0 and (2^256 - 1).
 
 To figure out the new difficulty target, we'll use the following algorithm:
@@ -271,8 +271,9 @@ Finally we can truncate this value to an integer and represent it as hex:
 
 Notice that this example results in **increasing** the target. This works out correctly since
 we were previously generating blocks at a frequency slower than desired (130 seconds vs. 120 seconds).
-This means we should lower the target slightly to make mining blocks easier, and we can
-do this by multiplying the last target by a ratio greater than 1.
+This means we should make the target slightly easier in order to allow the next
+block to be generated more quickly. A larger target is an easier target, so we end
+up multiplying the last target by a ratio greater than 1.
 
 Every mining node should follow this process to figure out the next target whenever they prepare to mine
 a new block.
