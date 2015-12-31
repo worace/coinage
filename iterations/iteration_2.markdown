@@ -27,19 +27,38 @@ key using the following steps:
 2. Of these outputs, pull out only those that are still *unspent*
 3. Add up the amounts of all of these remaining unspent outputs
 
+Remember that Transaction Outputs are simple data structures with this format:
+
+```json
+{
+  "amount": 5,
+  "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
+}
+```
+
+So we can determine if an output is assigned to a key by comparing the `"address"` field
+of the output with the key's PEM representation. And we can simply read the value
+of the output from its `"amount"` field.
+
 ## Identifying Unspent Transaction Outputs
 
-* "Index" outputs with coordinates (include tx id hash and index)
-* Search collection of inputs to see which ones reference your outputs
-* Outputs that have no inputs referencing them are unspent
+So how do we know which of the outputs assigned to a key can still
+be considered "unspent"?
 
-## Checking Balances
+Outputs of a transaction are spent by inputs to other, subsequent
+transactions. When spending an output, an input identifies it using
+the hash of the transaction to which it belongs and its numeric index
+within the list of outputs contained in that transaction.
 
-* take in the Key you want to check
-* select all the outputs assigned to that key
-* select all of those outputs which are also unspent
-* add up the amount of each output
-* => balance
+Thus when checking the status of an output, we'll need to have these
+identifying "coordinates" -- transaction hash and index. Once we have these,
+we can again search the block chain to check for any transaction
+inputs which claim our output's coordinates as their `source_hash` and `source_index`.
+
+If we find a match, we know that the output in question has been spent.
+Otherwise, it is unspent. When checking the balance of a key, you will need
+to use this process against each output to determine whether it has been
+spent or not.
 
 ## Generating payment Transactions
 
