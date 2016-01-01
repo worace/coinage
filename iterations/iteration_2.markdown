@@ -20,6 +20,8 @@ a given public key.
 Determining the amount of money available to a given key is really a question of
 determining the value of all Outputs that are assigned to it.
 
+### Balance Algorithm
+
 With these ideas in mind, we can determine the balance available to a given public
 key using the following steps:
 
@@ -40,7 +42,7 @@ So we can determine if an output is assigned to a key by comparing the `"address
 of the output with the key's PEM representation. And we can simply read the value
 of the output from its `"amount"` field.
 
-## Identifying Unspent Transaction Outputs
+### Identifying Unspent Transaction Outputs
 
 So how do we know which of the outputs assigned to a key can still
 be considered "unspent"?
@@ -60,23 +62,48 @@ Otherwise, it is unspent. When checking the balance of a key, you will need
 to use this process against each output to determine whether it has been
 spent or not.
 
-## Generating payment Transactions
+## Transferring Funds
 
-__Required Information:__
+Now that we can check the balance for a key, the next thing we might like
+to do is transfer some of these funds to another address (i.e. make a payment).
 
-* Access to block chain
-* paying key (in order to provide signatures)
-* receiving public key (to serve as address for txn outputs)
-* amount to send
+We have all the pieces in place required to make this happen, but the process
+is somewhat involved, so let's step through it.
 
+### Payment Outline
 
-1. Check balance as above to make sure the paying key has
-sufficient funds
-2. Select enough txn outputs to fund the requested amount
-3. Generate a transaction that includes those as its inputs
-4. Include an output transferring specified amount to specified address
-5. Sign the inputs with the provided paying key
-6. Hash the transaction
+In broad strokes, the process of setting up a payment transaction looks
+like this:
+
+1. Determine the amount to send as well as any transaction fees to include
+as incentive to miners
+2. Find all Unspent Transaction Outputs assigned to your wallet (key), and select
+enough of these to cover *at least* the payment amount + transaction fee (it's ok
+if you end up going over, since any excess can be returned to you as change)
+3. Generate 1 Transaction Input for each of these *sources*. Remember
+that inputs identify the transaction output they spend by providing the source transaction
+hash and output index
+4. Generate the payment output, which assigns the desired amount to the address
+you want to pay
+5. If the total value of inputs being included in the transaction is greater than the
+sum of your payment amount plus the transaction fee, add an additional *change* output
+that assigns the remaining value back to your own public key.
+6. Add the transaction hash
+7. Sign the transaction inputs
+
+### Required Information
+
+In order to generate a payment transaction, we'll need to have access to
+a few pieces of data:
+
+* The Block Chain -- We need to be able to gather source outputs from
+the chain in order to use them as inputs to our payment transaction
+* Paying Keypair -- We need the private key in order to sign our inputs,
+proving our ability to spend them. Additionally we may need the public key
+to use as a *change address* if we end up sourcing more outputs than are needed
+* Receiving Address -- This will be the `address` for the actual payment output in our
+transaction
+* Amount -- We need to know how much to pay!
 
 ## Including Change
 
