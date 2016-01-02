@@ -105,6 +105,51 @@ to use as a *change address* if we end up sourcing more outputs than are needed
 transaction
 * Amount -- We need to know how much to pay!
 
+### Payment Walkthrough
+
+Let's look at a more detailed example by walking through this process with a hypothetical
+block chain. To demonstrate, we'll imagine we had a block chain represented by this JSON
+structure:
+
+```json
+[{
+  "transactions": [
+    {
+      "hash": "a98f3d",
+      "timestamp": 1450584386520,
+      "outputs": [{"address": "Public-Key-A", "amount": 25 }],
+      "inputs": []
+    }
+  ],
+  "header": {
+    "hash": "00000ba50a43011e1a556e52f7eb30850bb4af40b773719e6de93dae4fe24c6a",
+    "nonce": 286743,
+    "timestamp": 1450584386,
+    "target": "0000100000000000000000000000000000000000000000000000000000000000",
+    "transactions_hash": "some-hash",
+    "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}]
+```
+
+Our chain here contains a single block which contains a single transaction (the coinbase).
+**Note** that for this example block I'll be filling in many of the fields with placeholder values
+(such as the hashes and public keys) in order to keep things simple. While the structure
+is accurate, the individual fields may not be.
+
+### Checking Balance
+
+Let's start with a quick balance check. We'll refer to the public/private keypair contained
+in our wallet as `Wallet-A`, so in order to find the corresponding balance, we need
+to find all Unspent Transaction Outputs addressed to `Public-Key-A`.
+
+Searching through the chain we find 1 output -- the output contained in transaction `a98f3d`
+at index `0` that is assigned to our key. Looking through the inputs in the chain, we find there
+are none, so we can safely assume that our output is unspent -- our wallet contains a
+balance of `25` coins.
+
+### Making a Payment
+
 ## Including Change
 
 ## Including Transaction Fees
