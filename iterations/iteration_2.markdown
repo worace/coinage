@@ -91,6 +91,20 @@ that assigns the remaining value back to your own public key.
 6. Add the transaction hash
 7. Sign the transaction inputs
 
+### Required Information
+
+In order to generate a payment transaction, we'll need to have access to
+a few pieces of data:
+
+* The Block Chain -- We need to be able to gather source outputs from
+the chain in order to use them as inputs to our payment transaction
+* Paying Keypair -- We need the private key in order to sign our inputs,
+proving our ability to spend them. Additionally we may need the public key
+to use as a *change address* if we end up sourcing more outputs than are needed
+* Receiving Address -- This will be the `address` for the actual payment output in our
+transaction
+* Amount -- We need to know how much to pay!
+
 ### Transaction Fees
 
 We haven't talked in depth about transaction fees up to now. In short,
@@ -133,20 +147,6 @@ a valid transaction output assigning the appropriate fee to the miner's address.
 Using implicit transaction fees gives us a flexible system that allows fees
 to be specified at the time the transaction is generated but captured later
 when the transaction is actually added to a block.
-
-### Required Information
-
-In order to generate a payment transaction, we'll need to have access to
-a few pieces of data:
-
-* The Block Chain -- We need to be able to gather source outputs from
-the chain in order to use them as inputs to our payment transaction
-* Paying Keypair -- We need the private key in order to sign our inputs,
-proving our ability to spend them. Additionally we may need the public key
-to use as a *change address* if we end up sourcing more outputs than are needed
-* Receiving Address -- This will be the `address` for the actual payment output in our
-transaction
-* Amount -- We need to know how much to pay!
 
 ### Payment Walkthrough
 
