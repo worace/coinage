@@ -148,7 +148,7 @@ Using implicit transaction fees gives us a flexible system that allows fees
 to be specified at the time the transaction is generated but captured later
 when the transaction is actually added to a block.
 
-### Payment Walkthrough
+## Payment Walkthrough
 
 Let's look at a more detailed example by walking through this process with a hypothetical
 block chain. To demonstrate, we'll imagine we had a block chain represented by this JSON
@@ -165,7 +165,7 @@ structure:
     }
   ],
   "header": {
-    "hash": "00000ba50a43011e1a556e52f7eb30850bb4af40b773719e6de93dae4fe24c6a",
+    "hash": "00000ba50a4",
     "nonce": 286743,
     "timestamp": 1450584386,
     "target": "0000100000000000000000000000000000000000000000000000000000000000",
@@ -201,7 +201,7 @@ whose value add up to at least 16.
 Fortunately for us we have an appropriate output immediately available -- the previously mentioned output
 at transaction `a98f3d` and index `0`.
 
-#### Adding Inputs
+### Adding Inputs
 
 Let's start building our example transaction by including this as an input:
 
@@ -213,7 +213,7 @@ Let's start building our example transaction by including this as an input:
 
 Now we have started a transaction with 1 input bringing an available value of 25.
 
-#### Adding Payment Output
+### Adding Payment Output
 
 The next step is to add the output assigning the payment amount (15) to
 the receiving address (`Public-Key-B`). Adding this would look like:
@@ -225,7 +225,7 @@ the receiving address (`Public-Key-B`). Adding this would look like:
 }
 ```
 
-#### Including Change
+### Including Change
 
 So far we have pulled in 25 coins worth of inputs to our transaction but only
 included outputs spending 15 coins, leaving a difference of 10. Remember -- any
@@ -261,7 +261,7 @@ Now this is looking better -- our transaction has total inputs of 25 and
 total outputs of 24, leaving the intended 1 coin as an implicit transaction
 fee.
 
-#### Signing Inputs
+### Signing Inputs
 
 Now that we have the expected inputs and outputs of our transaction in place,
 we can perform the vital step of signing the inputs. This process is described
@@ -282,7 +282,7 @@ to which the output that our input references is assigned.
 }
 ```
 
-#### Filling in Transaction Details
+### Filling in Transaction Details
 
 Now let's fill in a few more pieces of transaction info.
 
@@ -320,3 +320,80 @@ which will help us detect if anything in the transaction was to change.
 At this point we have a valid, fleshed-out transaction. We could add it to a
 block that we are attempting to mine or send it over the network to other
 miners in the hope that they will add it to a block of their own.
+
+## Adding to the Block Chain
+
+Let's continue looking at our example payment and see what might happen
+when it gets included into a block. For this example, we'll assume
+the owner of Wallet A generated that transaction to transfer funds
+to Wallet B. Then, A distributed the transaction over the network and
+it was picked up by a third user, C, who successfully included the transaction
+in a block and mined it.
+
+Our hypothetical chain might now look like this:
+
+```json
+[
+{
+  "transactions": [
+    {
+      "hash": "a98f3d",
+      "timestamp": 1450584386520,
+      "outputs": [{"address": "Public-Key-A", "amount": 25 }],
+      "inputs": []
+    },
+  ],
+  "header": {
+    "hash": "00000ba50a4",
+    "nonce": 286743,
+    "timestamp": 1450584386,
+    "target": "0000100000000000000000000000000000000000000000000000000000000000",
+    "transactions_hash": "some-hash",
+    "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+},
+{
+  "transactions": [
+    {
+      "hash": "a98f3d",
+      "timestamp": 1450584386520,
+      "outputs": [{"address": "Public-Key-C", "amount": 26 }],
+      "inputs": []
+    },
+    {
+     "inputs": [{"source-hash": "a98f3d",
+                "source-index": 0,
+                "signature": "Signed-With-Private-Key-A"}],
+     "outputs": [{"amount": 15, "address": "Public-Key-B"},
+              {"amount": 9, "address": "Public-Key-A"}],
+     "timestamp": 1452028966891,
+     "hash": "sha-256-hash-of-txn-contents"
+    }
+  ],
+  "header": {
+    "hash": "000009cd382",
+    "nonce": 286743,
+    "timestamp": 1450584386,
+    "target": "0000100000000000000000000000000000000000000000000000000000000000",
+    "transactions_hash": "some-hash",
+    "parent_hash": "00000ba50a4"
+  }
+}]
+```
+
+This structure is starting to get complicated, so let's break it down.
+
+To start with, the first block is still the same (blocks in the chain are
+immutable -- we can only add more blocks without changing the original ones).
+So that block contains 1 transaction which is a coinbase paying 25 coins to Public-Key-A.
+
+On top of that block, Miner C has now added another block. This block is more interesting
+since it contains 2 transactions. The first transaction is (as always) a coinbase. But this
+coinbase is a little different -- it assigns **25 coins** to Public-Key-C. Why? Because the coinbase
+value is equal to the reward amount (25) plus any transaction fees (in this case the 1 coin that the
+owner of Key A included with their payment).
+
+Additionally, the second block contains a second transaction -- the actual payment that we
+generated above. As we saw, this transaction consumes a single input and transfers 15 coins
+in one output to Public-Key-B and 9 coins in a second output to Public-Key-A (the change).
+This makes up a total output of 24 coins, leaving 1 coin available as a fee reward to the miner.
