@@ -194,8 +194,73 @@ balance of `25` coins.
 ### Making a Payment
 
 Now let's suppose we wanted to send a payment of 15 coins to the address `Public-Key-B`, and
-that we want to include a transaction
+that we want to include a transaction fee of 1 coin. Our total payment amount will thus be 16 coins,
+so in order to fund this transaction we'll need to come up with one or more unspent transaction outputs
+whose value add up to at least 16.
 
-## Including Change
+Fortunately for us we have an appropriate output immediately available -- the previously mentioned output
+at transaction `a98f3d` and index `0`.
+
+#### Adding Inputs
+
+Let's start building our example transaction by including this as an input:
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d", "source-index": 0}]
+}
+```
+
+Now we have started a transaction with 1 input bringing an available value of 25.
+
+#### Adding Payment Output
+
+The next step is to add the output assigning the payment amount (15) to
+the receiving address (`Public-Key-B`). Adding this would look like:
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d", "source-index": 0}],
+  "outputs": [{"amount": 15, "address": "Public-Key-B"}]
+}
+```
+
+#### Including Change
+
+So far we have pulled in 25 coins worth of inputs to our transaction but only
+included outputs spending 15 coins, leaving a difference of 10. Remember -- any
+difference between output value and input value is assumed to be a transaction
+fee.
+
+But we wanted to provide a fee of 1 coin, not 10. To fix this, we need to transfer
+the difference *back to ourselves* in the form of "change". Fortunately, returning
+change doesn't actually require any special structures or techniques. We simply apply
+the standard process for including outputs in a transaction, since change is
+simply another output of the appropriate value that goes back to the *sending key*.
+
+We can calculate the change amount by the following formula:
+
+```
+total input value - total output value - desired transaction fee
+```
+
+For our example, this will yield: `25 - 15 - 1 = 9`
+
+So, let's add another output to our transaction paying this amount back
+to our key (`Public-Key-A`):
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d", "source-index": 0}],
+  "outputs": [{"amount": 15, "address": "Public-Key-B"},
+	          {"amount": 9, "address": "Public-Key-A"}]
+}
+```
+
+Now this is looking better -- our transaction has total inputs of 25 and
+total outputs of 24, leaving the intended 1 coin as an implicit transaction
+fee.
+
+#### Filling in Transaction Details
 
 ## Including Transaction Fees
