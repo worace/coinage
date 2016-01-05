@@ -313,7 +313,7 @@ which will help us detect if anything in the transaction was to change.
   "outputs": [{"amount": 15, "address": "Public-Key-B"},
               {"amount": 9, "address": "Public-Key-A"}],
   "timestamp": 1452028966891,
-  "hash": "sha-256-hash-of-txn-contents"
+  "hash": "02d8c33"
 }
 ```
 
@@ -355,7 +355,7 @@ Our hypothetical chain might now look like this:
 {
   "transactions": [
     {
-      "hash": "a98f3d",
+      "hash": "4f912a4",
       "timestamp": 1450584386520,
       "outputs": [{"address": "Public-Key-C", "amount": 26 }],
       "inputs": []
@@ -365,9 +365,9 @@ Our hypothetical chain might now look like this:
                 "source-index": 0,
                 "signature": "Signed-With-Private-Key-A"}],
      "outputs": [{"amount": 15, "address": "Public-Key-B"},
-              {"amount": 9, "address": "Public-Key-A"}],
+                 {"amount": 9, "address": "Public-Key-A"}],
      "timestamp": 1452028966891,
-     "hash": "sha-256-hash-of-txn-contents"
+     "hash": "02d8c33"
     }
   ],
   "header": {
@@ -397,3 +397,39 @@ Additionally, the second block contains a second transaction -- the actual payme
 generated above. As we saw, this transaction consumes a single input and transfers 15 coins
 in one output to Public-Key-B and 9 coins in a second output to Public-Key-A (the change).
 This makes up a total output of 24 coins, leaving 1 coin available as a fee reward to the miner.
+
+### Updated Balances
+
+So let's look at the balances for our 3 wallets at this point.
+
+__Wallet A__
+
+Has 2 outputs: Transaction `a98f3d` at Index `0` (Worth 25) and Transaction `02d8c33` at Index 1 (Worth 9).
+
+However the `a98f3d-0` input was consumed by the first input to Transaction `02d8c33`,
+so it can be disregarded. This leaves Wallet A with a current balance of **9**.
+
+__Wallet B__
+
+Has 1 output: Transaction `02d8c33` at Index `0` (Worth 15). There are no subsequent
+inputs that spend this transaction output, so it counts toward B's current balance of **15**
+
+__Wallet C__
+
+Has 1 output: Transaction `4f912a4` at Index `0` (a coinbase, worth 26). There are no
+subsequent inputs that spend this output, so C's current balance is **26**.
+
+## Takeaways
+
+The main takeaways from this process are:
+
+* A wallet's balance is the result of adding up all outputs assigned to its public key
+and removing any that are spent by other transaction inputs.
+* The Fee attached to a transaction is implicit and is calculated as the difference between
+the value of all inputs and the value of all outputs
+* If you need to make change out of a transaction (because the inputs you have sourced are larger
+than the amount + txn fee you want to pay), you should include this as an additional
+transaction output which pays the appropriate amount back to your public key
+* Miners capture transaction fees by including them in their coinbase transaction. So the
+value of a coinbase output will always be the current mining reward plus the value of
+any fees in the transaction
