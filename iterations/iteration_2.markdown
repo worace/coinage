@@ -261,6 +261,62 @@ Now this is looking better -- our transaction has total inputs of 25 and
 total outputs of 24, leaving the intended 1 coin as an implicit transaction
 fee.
 
+#### Signing Inputs
+
+Now that we have the expected inputs and outputs of our transaction in place,
+we can perform the vital step of signing the inputs. This process is described
+in detail in [Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_0.markdown#signing-transaction-inputs),
+but for now we'll use a placeholder signature.
+
+The important thing to remember is that this signature must be provided using
+the private key associated with Public-Key-A, since that is the address
+to which the output that our input references is assigned.
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d",
+              "source-index": 0,
+              "signature": "Signed-With-Private-Key-A"}],
+  "outputs": [{"amount": 15, "address": "Public-Key-B"},
+	          {"amount": 9, "address": "Public-Key-A"}]
+}
+```
+
 #### Filling in Transaction Details
 
-## Including Transaction Fees
+Now let's fill in a few more pieces of transaction info.
+
+First, we'll add a simple timestamp (remember transactions are
+timestamped to the millisecond):
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d",
+              "source-index": 0,
+              "signature": "Signed-With-Private-Key-A"}],
+  "outputs": [{"amount": 15, "address": "Public-Key-B"},
+              {"amount": 9, "address": "Public-Key-A"}],
+  "timestamp": 1452028966891
+}
+```
+
+Finally, we'll fingerprint the transaction with a hash of all its contents,
+which will help us detect if anything in the transaction was to change.
+
+(Transaction Hashing process is described in [Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_0.markdown#hashing-transactions))
+
+```json
+{
+  "inputs": [{"source-hash": "a98f3d",
+              "source-index": 0,
+              "signature": "Signed-With-Private-Key-A"}],
+  "outputs": [{"amount": 15, "address": "Public-Key-B"},
+              {"amount": 9, "address": "Public-Key-A"}],
+  "timestamp": 1452028966891,
+  "hash": "sha-256-hash-of-txn-contents"
+}
+```
+
+At this point we have a valid, fleshed-out transaction. We could add it to a
+block that we are attempting to mine or send it over the network to other
+miners in the hope that they will add it to a block of their own.
