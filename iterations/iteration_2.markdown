@@ -91,6 +91,49 @@ that assigns the remaining value back to your own public key.
 6. Add the transaction hash
 7. Sign the transaction inputs
 
+### Transaction Fees
+
+We haven't talked in depth about transaction fees up to now. In short,
+transaction fees are provided as an incentive for miners to include
+our transaction as part of a block they are mining -- sort of a "tip"
+that the miner receives as a small bonus for mining a block that contains
+your transaction. Whenever a miner includes a transaction in a block, they are gain any fees attached
+to that transaction.
+
+So how do fees work at a technical level? Interestingly, the fees
+are not explicitly stated. Rather, any difference between the combined
+value of all inputs and the combined value of all outputs in a transaction
+is assumed to be a transaction fee.
+
+This partly explains why accounting for change in our transactions is so
+important -- any "leftovers" that we don't account for are assumed to
+be a transaction fee and will be captured by the miner.
+
+So the "input value" of transaction fees is implied, but surely the
+output value must appear somewhere. It does -- in fact, transaction
+fees are simply incorporated into the block's coinbase transaction.
+
+Previously we described the coinbase as a special transaction containing
+0 inputs and 1 output whose value equals the current block reward amount.
+It turns out there's an additional component -- the coinbase output will
+also include the sum of all transaction fees included within the transaction.
+If the current miner reward is set at `25`, it's likely that most coinbase
+transactions will have a value slightly higher than `25`, since they will
+often incorporate one or more transaction fees.
+
+__Why have implicit transaction fees?__
+
+This system for assigning fees may seem a little strange at first, but
+if we consider the distributed design of the system we can see that it's actually
+quite necessary. The problem is that at the time we generate a transaction,
+we don't necessarily know which miner will end up finding the block
+which adds it to the block chain. Thus it's not possible at that time to generate
+a valid transaction output assigning the appropriate fee to the miner's address.
+
+Using implicit transaction fees gives us a flexible system that allows fees
+to be specified at the time the transaction is generated but captured later
+when the transaction is actually added to a block.
+
 ### Required Information
 
 In order to generate a payment transaction, we'll need to have access to
@@ -149,6 +192,9 @@ are none, so we can safely assume that our output is unspent -- our wallet conta
 balance of `25` coins.
 
 ### Making a Payment
+
+Now let's suppose we wanted to send a payment of 15 coins to the address `Public-Key-B`, and
+that we want to include a transaction
 
 ## Including Change
 
