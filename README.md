@@ -56,7 +56,7 @@ project.
 * **[Iteration 0](https://github.com/worace/coinage/blob/master/iterations/iteration_0.markdown)** - Creating Wallets and Signing/Serializing Transactions
 * **[Iteration 1](https://github.com/worace/coinage/blob/master/iterations/iteration_1.markdown)** - Creating and Mining Blocks
 * **[Iteration 2](https://github.com/worace/coinage/blob/master/iterations/iteration_2.markdown)** - Working with the BlockChain -- checking balances and generating payment transactions
-* **Iteration 3** - Network Protocol -- TCP basics and defining expected message types
+* **[Iteration 3](https://github.com/worace/coinage/blob/master/iterations/iteration_3.markdown)** - Networking Basics -- connecting with TCP and handling basic message types
 * **Iteration 4** - Validating Incoming Transactions and Blocks
 * **Iteration 5** - Extended Networking: Discovering Additional Peers and Forwarding Valid Blocks and Transactions
 * **Iteration 6** - Mining: Aggregating Transactions and Solving Blocks
