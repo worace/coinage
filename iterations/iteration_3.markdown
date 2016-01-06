@@ -83,6 +83,64 @@ efficiency and performance (both from a speed and bandwidth perspective), we mig
 to investigate a dedicated binary protocol (as the actual Bitcoin protocol uses), but
 for our purposes we are more interested in clarity and ease of use.
 
+## Accepting and Sending Requests
+
+To start, our node will want to be able to accept requests from other nodes. To do
+this, we'll open a TCP Server on a port -- say, `8334` -- and accept connections
+on it. Fortunately most programming languages include a library to make this
+fairly straightforward. In ruby, it looks like:
+
+```ruby
+require "socket"
+Socket.tcp_server_loop(8334) do |conn|
+  puts conn.read
+  conn.close
+end
+```
+
+Then, to send data to this socket, we would need to open a TCP socket
+and write to it (you can try this in a separate pry terminal if you like):
+
+```ruby
+require "socket"
+s = TCPSocket.new("localhost",8334)
+s.write("hi there")
+s.close
+```
+
+If you were running both processes, you should see your message show up!
+
+## Parsing Incoming Messages
+
+As we mentioned, we'll use JSON to format and transmit our messages. We
+can easily use this to serialize and parse the messages we send and receive:
+
+__Server:__
+
+```ruby
+require "socket"
+require "json"
+
+Socket.tcp_server_loop(8334) do |conn|
+  puts JSON.parse(conn.read)
+  conn.close
+end
+```
+
+__Client:__
+
+```ruby
+require "socket"
+requrie "json"
+s = TCPSocket.new("localhost",8334)
+message = {message_type: "free_form_text", payload: "hi again"}
+s.write(message.to_json)
+s.close
+```
+
+Now your clients can send structured messages to the server and the
+server can use JSON to parse them and determine the intent.
+
 ## Message Types
 
 ## Automated TCP Protocol Spec
