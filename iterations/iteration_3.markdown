@@ -44,6 +44,45 @@ but as a client it will initiate its own requests as needed.
 
 ## Transit Mechanism and Formats (TCP / JSON)
 
+So how will all this work from a technical perspective? For our network, we'll
+be using [TCP](https://en.wikipedia.org/wiki/Transmission_Control_Protocol) as a
+*transit protocol* to send data over the network between nodes. Each node will
+need to run a simple TCP Server in order to field requests from other nodes.
+Additionally, for every *peer* to which a node wants to connect, they will need
+to create a TCP Client that connects to that node at the appropriate IP Address
+and Port.
+
+As for the actual messages themselves, we'll be using JSON as a serialization
+format. In fact, all messages will follow a simple JSON format including a
+`message_type` that identifies the kind of message being sent and an optional `payload`
+that includes any necessary information.
+
+So an example message might look like:
+
+```json
+{
+  "message_type": "add_peer",
+  "payload": "10.0.1.2:3000"
+}
+```
+
+__Why these technologies?__
+
+There are a variety of transit protocols and serialization formats out there that
+we could choose from. We choose TCP because it has great built-in procedures for
+ensuring reliability of the messages -- for example the protocol is able to intelligently
+retry certain packets if they fail due to network issues, etc. Additionally, TCP defines
+robust procedures for splitting arbitrary messages across packets and guaranteeing that
+these packets will arrive in the proper order to avoid garbling our data.
+Finally TCP is a very common and well-supported protocol, and you'll find reliable tools
+for working with it in any major programming language.
+
+As for JSON, it's an extremely popular serialization format these days, and has the
+additional advantage of being extremely human-readable. If we were more concerned with
+efficiency and performance (both from a speed and bandwidth perspective), we might want
+to investigate a dedicated binary protocol (as the actual Bitcoin protocol uses), but
+for our purposes we are more interested in clarity and ease of use.
+
 ## Message Types
 
 ## Automated TCP Protocol Spec
