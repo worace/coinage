@@ -189,6 +189,52 @@ depending on whether they are trying to send a message or receive one.
 
 ## Message Types
 
+__Peering__
+
+* Add Peer - `add_peer` - payload: Port number to connect to - add the sending node's
+IP address as a peer at the provided port
+* Remove Peer - `remove_peer` - payload: PORT number of original connection
+* List Peers - `list_peers` - payload: none - send list of IP addresses and ports to which the node is currently connected
+
+__Balance Checks__
+
+* Balance (for public key) - `get_balance` - payload: Public Key to check balance for - Node should
+compute and send available balance for specified key based on its version of the block chain
+
+__Transactions__
+
+* Add And Forward Transaction - `add_transaction` - payload: JSON representation of the transaction
+to add - Node should read the new transaction and, if it is valid, forward it to its peers
+* Validate Transaction - `validate_transaction` - payload: JSON representation of the txn to verify -
+Node should verify this transaction and send a response with any errors that were found
+* Current Pending Transaction Pool - `get_transaction_pool` - payload: none - Node should send
+any currently pending transactions that are waiting to be included in a block
+
+__Blocks__
+
+* Send Blockchain - `get_blocks` - payload: Block Hash of the most recent block that sending
+node knows about - Node should return list of blocks
+* Block Info (for block hash) - `get_block` - payload: Block Hash of block to get info about - Node
+should send JSON representation of block in question
+* Add And Forward Block - `add_block` - payload: JSON rep of new block - Node should validate
+the block and if acceptable, commit it to its block chain and forward the block to other peers
+* Current Block Height - `get_height` - payload: none - Node should respond with
+current # of blocks it knows of
+* Latest Block - `get_latest_block` - payload: none - Node should respond with hash of the
+latest block on its chain
+
+__Misc__
+
+* Chat - `chat` - payload: message to send - Just for funsies - sned an arbitrary message
+to one of your peers. No response required
+* Echo - `echo` - payload: arbitrary - Node should respond with the same payload that
+was sent
+
 ## Automated TCP Protocol Spec
 
-##
+## References
+
+http://www.righto.com/2014/02/bitcoins-hard-way-using-raw-bitcoin.html
+https://en.bitcoin.it/wiki/Network
+https://coinlogic.wordpress.com/
+https://en.bitcoin.it/wiki/Protocol_documentation#Message_types
