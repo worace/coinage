@@ -83,9 +83,9 @@ efficiency and performance (both from a speed and bandwidth perspective), we mig
 to investigate a dedicated binary protocol (as the actual Bitcoin protocol uses), but
 for our purposes we are more interested in clarity and ease of use.
 
-## Accepting and Sending Requests
+## Accepting and Sending Messages
 
-To start, our node will want to be able to accept requests from other nodes. To do
+To start, our node will want to be able to accept messages from other nodes. To do
 this, we'll open a TCP Server on a port -- say, `8334` -- and accept connections
 on it. Fortunately most programming languages include a library to make this
 fairly straightforward. In ruby, it looks like:
@@ -110,10 +110,44 @@ s.close
 
 If you were running both processes, you should see your message show up!
 
-## Parsing Incoming Messages
+## Sending Actual Messages
 
 As we mentioned, we'll use JSON to format and transmit our messages. We
-can easily use this to serialize and parse the messages we send and receive:
+can easily use this to serialize and parse the messages we send and receive,
+but there's one more thing to consider. A common problem with communication
+over TCP is determining when a client is done sending data.
+
+In our previous example, the `write` line transmits data over the socket, but
+the server's `read` call won't actually complete until the client is finished
+sending information. In this case, we signify that by closing the socket --
+this sends a special `EOF` message indicating the stream is closed, so our server
+knows to stop reading and process the information that has been sent so far.
+
+That works well when we don't need to do anything else with the socket, but in
+our case we'll likely want to *receive* data from the socket in response to
+the data we just sent. To do that we need to keep the socket open until the
+server is done sending, and thus we can't rely on closing the socket to
+signify end of transmission.
+
+Instead, we'll adopt the convention of ending all messages with a double
+newline: `\n\n`. This allows peers to read our messages line by line.
+When a completely blank line is discovered, they will know to stop reading
+and process our message.
+
+So...to send an actual message we need to do 2 things:
+
+1. Encode our message as json
+2. Append the end-sequence (`\n\n`) to the end of the message
+
+When receiving messages, we'll also need to process them appropriately.
+This entails:
+
+1. Read from the incoming socket line by line
+2. When a blank line (only containing `\n`) is encountered, stop reading
+
+__Example__
+
+With a TCP socket,
 
 __Server:__
 
@@ -122,7 +156,11 @@ require "socket"
 require "json"
 
 Socket.tcp_server_loop(8334) do |conn|
-  puts JSON.parse(conn.read)
+  while line = conn.gets
+    break if line == "\n"
+    puts JSON.parse(line.chomp).inspect
+  end
+  conn.write("response goes here")
   conn.close
 end
 ```
@@ -131,10 +169,11 @@ __Client:__
 
 ```ruby
 require "socket"
-requrie "json"
+require "json"
 s = TCPSocket.new("localhost",8334)
 message = {message_type: "free_form_text", payload: "hi again"}
-s.write(message.to_json)
+s.write(message.to_json + "\n\n")
+puts s.read
 s.close
 ```
 
