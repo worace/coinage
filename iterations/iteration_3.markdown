@@ -145,9 +145,7 @@ This entails:
 1. Read from the incoming socket line by line
 2. When a blank line (only containing `\n`) is encountered, stop reading
 
-__Example__
-
-With a TCP socket,
+#### Example
 
 __Server:__
 
@@ -179,6 +177,15 @@ s.close
 
 Now your clients can send structured messages to the server and the
 server can use JSON to parse them and determine the intent.
+
+__Note__
+
+Don't forget that when using the terms "client" and "server" we're really
+describing the "sending" role or the "receiving" role of our 2-way
+peer-to-peer communication model.
+
+Our actual client programs will engage alternately as both clients and servers,
+depending on whether they are trying to send a message or receive one.
 
 ## Message Types
 
