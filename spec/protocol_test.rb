@@ -31,8 +31,8 @@ describe "Clarke Coin Protocol Spec" do
     assert_equal msg, transmit_and_recv(msg)
   end
 
-  it "lists peers" do
-    msg = {message_type: "list_peers"}
+  it "gets peers" do
+    msg = {message_type: "get_peers"}
     resp = transmit_and_recv(msg)
     assert_equal [], resp[:payload]
   end
