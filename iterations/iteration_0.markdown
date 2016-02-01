@@ -327,6 +327,8 @@ private_key = OpenSSL::PKey.read("/Path/to/my/key.pem")
 => #<OpenSSL::PKey::RSA:0x007f9218991270>
 
 signature = private_key.sign(OpenSSL::Digest::SHA256.new, signable_transaction_string)
+private_key.public_key.verify(OpenSSL::Digest::SHA256.new, signature, signable_transaction_string)
+=> true
 ```
 
 This signature would then be inserted into each transaction input to validate it
