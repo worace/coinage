@@ -101,17 +101,19 @@ compact storage format, but for now, we're going to see if we can get
 away with a more readable format by serializing our transactions as JSON.
 
 With that in mind, let's say that a Transaction can be represented as a simple
-JSON object containing 3 keys:
+JSON object containing 4 keys:
 
 1. **inputs** - an array of transaction inputs following the structure defined below
 2. **outputs** - an array of transaction outputs following the structure defined below
-3. **hash** - a SHA256 hash of the transaction; the hash process will be discussed in detail later
+3. **timestamp** - an integer expressing the time of the transaction; see below
+4. **hash** - a SHA256 hash of the transaction; the hash process will be discussed in detail later
 
 This would look something like this:
 
 ```json
 {"inputs":[],
  "outputs":[],
+ "timestamp": 1450310016721,
  "hash":"some-sha-hash"
 }
 ```
