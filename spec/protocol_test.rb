@@ -31,10 +31,18 @@ describe "Clarke Coin Protocol Spec" do
     assert_equal msg, transmit_and_recv(msg)
   end
 
+  it "pongs" do
+    msg = {message_type: "ping", payload: Time.now.to_i}
+    resp = transmit_and_recv(msg)
+    assert_equal "pong", resp[:message_type]
+    assert_equal msg[:payload], resp[:payload]
+  end
+
   it "gets peers" do
     msg = {message_type: "get_peers"}
     resp = transmit_and_recv(msg)
     assert_equal [], resp[:payload]
+    assert_equal "peers", resp[:message_type]
   end
 
   it "adds a peer" do
