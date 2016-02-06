@@ -88,19 +88,11 @@ We'll use a much-simplified version of Bitcoin's format for representing a trans
 The important pieces of information to include here are the individual transaction
 inputs followed by the individual transaction outputs. The actual Bitcoin protocol
 accomplishes this by defining its own binary data format, which packs the various
-pieces of transaction info into a carefully sequenced series of bits.
+pieces of transaction info into a carefully sequenced series of bits. This makes for more efficient
+storage and transfer over the network, but is also more tedious to work with.
 
-The transaction format is important because we'll eventually need
-to verify transactions by running them through a Hashing Function.
-As we know, the output of a hash function depends very precisely on
-the ordering and contents of the input data -- So if we all want to be
-able to get the same results from hashing a transaction, we need
-to make sure we're feeding in the transaction data in the same
-order and format.
-
-Bitcoin's binary formats solve this problem and also provide a very
-compact storage format, but for now, we're going to see if we can get
-away with a more readable format by serializing our transactions as JSON.
+Instead, we'll use straightforward JSON structures to represent transactions in our
+system.
 
 With that in mind, let's say that a Transaction can be represented as a simple
 JSON object containing 3 keys:
@@ -115,20 +107,11 @@ This would look something like this:
 {"inputs":[],
  "outputs":[],
  "hash":"some-sha-hash"
+ "timestamp":"some unix timestamp"
 }
 ```
 
 Except that the input and output keys would contain actual collections of inputs and outputs.
-
-__Looking up Transaction Outputs__
-
-One thing to note about this structure is that within a transaction,
-we simply stack the outputs (and inputs) back to back in an array.
-
-Thus if we want to refer back to a specific output in a subsequent
-transaction, we'll need to first identify which transaction it is
-contained in, and then identify the _index_ of that output within
-the sequence of that transaction's outputs.
 
 #### Transaction Output Structure
 
@@ -155,6 +138,8 @@ will have to produce a valid signature for this transaction.
 
 __Example:__
 
+This simple transaction output would represent the transfer of 5 coins to the owner of the specified public key:
+
 ```json
 {
   "amount": 5,
@@ -162,178 +147,41 @@ __Example:__
 }
 ```
 
-#### Transaction Input Strucutre
+### Coinbase: The Simplest Transaction
 
-When we want to "spend" a chunk of bitcoin that was transferred
-to us in a previous transaction, we'll use it as an "input"
-to a new transaction. When doing this, we'll talk about transaction
-*inputs*, but it's important to remember that transaction inputs
-are really just outputs generated in previous transactions.
+Eventually, we'll dive in to working with more complicated transactions. But for now, we're going to work toward getting a basic miner up and running as simply as possible. To accomplish this, we actually only need to be able to handle one type of simple transaction.
 
-An input is a little more involved than an output because it needs
-to identify a few key pieces of information:
+A Coinbase is a single transaction which a miner includes in the beginning of a block to award themself coins for mining the block. A coinbase transaction represents the creation of new coins, and as such it has no *inputs* and one *output*.
 
-1. The previous transaction, in which the input we're trying to
-consume was originally generated (as an output). This transaction
-will be identified by its unique hash.
-2. The *index* of the output in that previous transaction (remember
-that a transaction contains multiple outputs, so to identify a specific
-one we need to specify its index in the sequence)
-3. A special *signature* proving that the person creating this transaction
-does in fact have own the input they are trying to spend. This piece is
-crucial to guaranteeing the security of the system.
+The coinbase transaction is especially significant because it solves 2 problems: first, it provides additional incentives for miners to generate new blocks, since they are rewarded for doing so. Secondly, it manages the introduction of new coins into the money supply.
 
-So what does this look like in a more concrete serialization format?
-Let's stick with the JSON approach and try to express a transaction
-input as a JSON object containing the following keys:
+Coinbases are especially convenient for the moment since they have outputs but no inputs. This lets us get away with starting our block chain without having to deal with the process of signing and validating inputs.
 
-1. **source_hash** - SHA256 hash of the previous transaction
-that contains the transaction Output being spent by this input. This
-serves as an identifier for looking up that transaction among the chain
-of all previous transactions.
-2. **source_index** - The zero-based numeric index of
-the specific output within the identified transaction which is being
-spent.
-3. **signature** - RSA Signature of the SHA256 hash of all contents
-from the current transaction (minus the signatures). We'll cover hashing transactions in more detail,
-but in short, you would line up all the contents of the transaction, run them
-through SHA256, then take the resulting SHA hash and sign
-that with your private key.
+So what does one look like? Here's an example:
 
-__Example:__
+#### Example Coinbase:
 
 ```json
 {
-  "source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
-  "source_index": 0,
-  "signature": "psO\/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt\/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="
+    "inputs": [],
+    "outputs": [
+        {
+            "amount": 25,
+            "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+        }
+    ],
+    "timestamp": 1450565806588,
+    "hash": "789509258c985783a0c6f99a29725a797bcdcaf3a94c17b077a228fd2a572fa9"
 }
 ```
 
-This example would represent a transaction input which is attempting to spend
-the **transaction output** contained at index 0 among all of the outputs
-contained within transaction "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e".
+This is a JSON object representing an example coinbase transaction. Note that it follows all the structural
+patterns we discussed above:
 
-##### More on the Input Signature
-
-From the Bitcoin Protocol developer reference:
-
-> The entire transaction's outputs, inputs, and script (from the most recently-executed
-> OP_CODESEPARATOR to the end) are hashed.
-> The signature used by OP_CHECKSIG must be a valid signature for this hash and public key.
-> If it is, 1 is returned, 0 otherwise.
-
-The output signature of a transaction is essential to the security of the overall system
-because it guarantees 2 things.
-
-First, using your private key to sign a TXInput proves to the network that you are the
-valid owner of the corresponding TXOutput. This is because the output itself contains the
-public key associated with your private key, and other nodes on the network can use
-this public key to mathematically prove that your private key is the only one that
-could produce the given signature -- thus proving your ownership.
-
-However, it's not enough to just use the signature to prove ownership of the specified
-TXOutput -- we also need to prove that this input is intended to be included in this
-specific transaction.
-
-Technically we could use our private key to sign anything we wanted
-and it could still be proved to be associated with the known public key.
-But in order to pin the signature to the specific transaction, we use it to sign
-a very specific value -- the Hash of the transaction we are working on. We know that
-if someone tried to change the transaction context of the input, it would completely
-change the transaction hash, which would in turn invalidate the signature.
-
-Thus using the Input Signature to sign a hash of the whole transaction, we can
-prevent others from taking our signed input and using it in another transaction.
-
-**A couple notes** - An alternative here would be to just sign all of the outputs
-of the transaction. This would simplify the process a bit since we wouldn't have to
-worry about "zeroing out" the signatures of the pending tx inputs so that we can sign them.
-But it also would in theory allow the signed input to be re-used in another transaction
-that had the same outputs (but possibly different inputs). Not sure if this represents
-a vulnerability or not.
-
-[More Info](https://en.bitcoin.it/wiki/OP_CHECKSIG)
-
-### Transaction Example
-
-To represent a full transaction, we take the input and output structures outlined above
-and embed them within a larger transaction structure. We then add a special "hash" key
-containing the SHA256 hash of the transaction, and that represents our transaction.
-
-Here's an example formatted as json:
-
-```json
-{
-  "inputs": [
-    {
-      "source-hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e",
-      "source-index": 0,
-      "signature": "psO\/Bs7wt7xbq9VVLnykKp03fKKd4LAzTGnkXjpBhNSgXFt9tGF8f+5QusvRDjjds6NWiet4Bvs2cbfwG2IQfmuAMWwrycrmq8xCpNYnajK+Cyt9ogsU25Q65VYlciXWyrCAIUhtwCJ3Tlwyf1rHbJi6yV4qVHL+7SkxQexlIctlU4r4c0hmofnqcaYCpLfbQ0Kge6NJb7m2NaiWgXhRcJHFVmhQHUUYhxJeZq9PwLoL4nMKWrGKsUC31tRt\/kz+ISROG033oG6LeKGozzGEehL8fMoESS9NEfSQtoGYZ2tvo3xqPSM+mQn852iPMtiBt1UldtiEkX6xdvNWdl3Tfg=="
-    }
-  ],
-  "outputs": [
-    {
-      "amount": 5,
-      "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"
-    }
-  ],
-  "timestamp": 1450310016721,
-  "hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"
-}
-```
-
-### Signing Transaction Inputs
-
-Now let's look at how the "signature" field of each transaction input is generated.
-
-Recall that to generate a valid Transaction Input, the sender needs to include a
-valid RSA signature of a Hash of the contents of the transaction into which they
-are trying to embed the signature.
-
-However this presents a small problem since the Transaction Hash itself is dependent
-on the signature (since the signature is part of the input and this is part of the
-transaction).
-
-To get around this, we'll generate the signature for each input by signing a
-representation of the transaction *without the signatures*.
-
-To generate the input to this signature, we'll do the following:
-
-1. Concatenate the *source_hash* and *source_index* of each input
-2. Concatenate those strings into a single *inputs_string*
-3. Concatenate the *amount* and *address* fields of each output
-4. Concatenate those strings into a single *outputs_string*
-5. Concatenate the *inputs_string* and *outputs_string*
-
-We'll treat the output of step 5 as a "signable transaction string" which
-we'll use to generate the unlocking signature for each of our inputs.
-
-Thus, we can think of the signature for a Transaction Input as:
-
-RSA-signature-with-SHA256( signable-transaction-string )
-
-So, given the example input and output shown above, we could look at a ruby example like so:
-
-
-```ruby
-inputs = JSON.parse('[{"source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e", "source_index": 0}]')
-outputs = JSON.parse('[{"amount": 5, "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"}]')
-
-inputs_string = inputs.map { |i| i["source_hash"] + i["source_index"].to_s }.join
-outputs_string = outputs.map { |i| i["amount"].to_s + i["address"] }.join
-
-signable_transaction_string = inputs_string + outputs_string
-
-private_key = OpenSSL::PKey.read("/Path/to/my/key.pem")
-=> #<OpenSSL::PKey::RSA:0x007f9218991270>
-
-signature = private_key.sign(OpenSSL::Digest::SHA256.new, signable_transaction_string)
-private_key.public_key.verify(OpenSSL::Digest::SHA256.new, signature, signable_transaction_string)
-=> true
-```
-
-This signature would then be inserted into each transaction input to validate it
+1. The transaction contains an array of `inputs` which is empty in this case
+2. The transaction contains an array of `outputs`, each of which specifies an `amount` and an `address` to which it should be transferred
+3. The transaction contains a UNIX `timestamp` specifying the time it was created, in milliseconds.
+4. The transaction includes a SHA-256 hash of all of its contents (more on this next)
 
 ### Hashing Transactions
 
@@ -355,49 +203,70 @@ follow these steps:
 SHA256( hashable-transaction-string )
 ```
 
-For the hash of the example transaction above, this would look like (in ruby):
+For the hash of the example coinbase transaction above, this would look like (in ruby):
 
 ```ruby
-inputs = JSON.parse('[{"source_hash": "9ed1515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e", "source_index": 0, "signature": "some-signature"}]')
-outputs = JSON.parse('[{"amount": 5, "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaKTGz1LlgVihe0dGlE\nPsn\/cJk+Zo7uePr8hhjCAj+R0cxjE4Q8xKmVAA3YAxenoo6DShn8CSvR8AvNDgMm\nAdHvKjnZXsyPBBD+BNw5vIrEgQiuuBl7e0P8BfctGq2HHlBJ5i+1zitbmFe\/Mnyr\nVRimxM7q7YGGOtqQ5ZEZRL1NcvS2sR+YxTL5YbCBXUW3FzLUjkmtSEH1bwWADCWj\nhz6IXWqYU0F5pRECVI+ybkdmirTbpZtQPyrND+iclsjnUUSONDLYm27dQnDvtiFc\nIn3PZ3Qxlk9JZ6F77+7OSEJMH3sB6\/JcPZ0xd426U84SyYXLhggrBJMXCwUnzLN6\nuwIDAQAB\n-----END PUBLIC KEY-----\n"}]')
-timestamp = (Time.now.to_f * 1000).to_i
+require "json"
+require "digest"
+
+inputs = []
+outputs = JSON.parse('{
+            "amount": 25,
+            "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+        }')
+timestamp = 1450565806588 # or... (Time.now.to_f * 1000).to_i
 
 inputs_string = inputs.map { |i| i["source_hash"] + i["source_index"].to_s + i["signature"] }.join
+# ^^ this will just give us an empty string, since we have no inputs
 outputs_string = outputs.map { |i| i["amount"].to_s + i["address"] }.join
 
 hashable_transaction_string = inputs_string + outputs_string + timestamp.to_s
 
 txn_hash = Digest::SHA256.hexdigest(hashable_transaction_string)
+=> "789509258c985783a0c6f99a29725a797bcdcaf3a94c17b077a228fd2a572fa9"
 ```
 
-### Verifying transactions
+### Transactions and Mining
 
-As transactions get propagated to the network, clients will need to verify
-several things about the transaction:
+So how does this Coinbase transaction fit into writing a basic miner?
+In short, miners generate blocks, and blocks contain transactions. Eventually
+our blocks willl contain lots of different transactions sourced dynamically
+from the larger network, but to start with each block needs to contain
+at least one particular transaction -- the coinbase.
 
-1. All transaction inputs must have a valid signature proving
-that the sender has authority to use those inputs
-2. All outputs must be assigned to valid addresses
-3. All inputs must still be available for spending
+Once you can a) create a simple "wallet" containing a public and private
+key and b) create a simple coinbase transaction by following the structure
+above, you're ready to create your first block to hold one of these transactions.
 
-#### Change
+## Iteration 0 Exercises
 
-When spending an output, it must be consumed in its entirety. However often
-we will want to transfer an amount that doesn't exactly match the inputs
-we are feeding in. In these cases we will need to return "change" back to
-ourselves.
+### 1 - TXN Hashing
 
-Since all currency must be transferred in the form of discrete outputs, our
-change will simply form another output of the transaction. Thus a transaction
-will often take the form of 1 input -> 2 outputs, where 1 of the outputs
-is going to the other party's address and the other output goes back to
-our own address in the form of "change"
+Take the example coinbase transaction below and see if you can manually verify the transaction hash that was produced by pulling out the appropriate pieces, concatenating them in the proper order, and running them through SHA256. This is probably best done in a repl session of some sort.
 
-It's important that change appears as another output within the same
-transaction (as opposed to a separate transaction). This allows
-a single input to be split into multiple outputs at once, and also
-guarantees that our change and transfer outputs can't be separated from
-one another.
+```json
+{
+    "inputs": [],
+    "outputs": [
+        {
+            "amount": 25,
+            "address": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFl76216Veu5\/H2MM4lO\nNFOuZLGcwxeUQzdmW2g+da5mmjyV3RiuYueDJFlAgx2iDASQM+rK1qKp7lj352DU\n3gABqJ5Tk1mRvGHTGz+aP4sj8CKUnjJIQVmmleiRZ47wRDsnrg9N0XyfW+aiPKxl\njvr1pkKJmryO+u2d69Tc69bNsqpGzFLTdO3w1k\/jxa0pUAQNqf11MJSrzF7u\/Z+8\nmaqFZlzZ5o1LgqTLMpeFg0pcMIKuZb9yQ1IKqOjLsvTvYYyBbNU31FD8qVY\/R64z\nbrIYbfWXNiUrYOXyIq7rqegLf3fx+aJGgwUOGYr2MJjY+ZR5Z+cIKJiAgNnpkBWR\nhwIDAQAB\n-----END PUBLIC KEY-----\n"
+        }
+    ],
+    "timestamp": 1450565806588,
+    "hash": "789509258c985783a0c6f99a29725a797bcdcaf3a94c17b077a228fd2a572fa9"
+}
+```
+
+### 2 - Your own Coinbase
+
+Now, see if you can manually construct your own coinbase using the following steps:
+
+1. Create a public/private key pair
+2. Add the inputs for your transaction (`[]`)
+3. Add the timestamp for your transaction
+4. Add the output for your transaction with the amount `25` and the address of the public key you created in step 1. Remember that outputs are represented as an array even when you only have one of them.
+5. Add the hash for your transaction by following the transaction hashing steps described above.
 
 ### Note on Hex Strings
 
