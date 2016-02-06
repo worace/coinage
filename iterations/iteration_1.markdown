@@ -127,6 +127,18 @@ Thus mining becomes a brute force exercise in trying new nonce values until we f
 one that combines with the rest of the block header contents to give us a hash below
 the desired difficulty threshold.
 
+## Exercise: Simple Miner
+
+In short "mining" is a mechanism to make the process of generating blocks difficult. This is important in order to prevent bad actors from creating fraudulent blocks or flooding the network with bogus blocks.
+
+Bitcoin achieves these restrictions through lots of use of cryptographic hashing. Cryptographic hashes are easy to generate and verify, but hard to predict or manipulate. In particular, if you specify a given hash value, it's extremely difficult to find a given input which produces that value when hashed. This is because hashes themselves are unpredictable, so the only way to "target" a specific hash value is to laboriously try a lot of inputs until you find the one that produces the hash you're looking for.
+
+In our case, when mining against a target we don't attempt to match that target exactly, but rather to find any input which produces a hash _smaller than_ the target. This still proves difficult, but not impossible. Additionally, it lets us calibrate the difficulty as needed by lowering the target over time.
+
+To practice working with this concept, try the following exercise:
+
+Given a target hash `"0001515819dec61fd361d5fdabb57f41ecce1a5fe1fe263b98c0d6943b9b232e"`, write a simple program which searches for a value `nonce` such that `nonce` produces a SHA256 hash _smaller than_ the given target. (Hint: you'll probably need a loop of some sort to try various inputs until you get a valid one.)
+
 ### Hashing Transactions
 
 To generate the block's transaction hash, generate the hexadecimal hashes for
