@@ -104,10 +104,10 @@ JSON object containing 3 keys:
 This would look something like this:
 
 ```json
-{"inputs":[],
- "outputs":[],
- "hash":"some-sha-hash"
- "timestamp":"some unix timestamp"
+{"inputs": [],
+ "outputs": [],
+ "hash": "some-sha-hash"
+ "timestamp": "some unix timestamp"
 }
 ```
 
