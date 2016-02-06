@@ -1,4 +1,4 @@
-# Iteration 0 - Creating Wallets, Creating Transactions, and Signing/Serializing Transactions
+# Iteration 0 - Creating Wallets, Creating a Coinbase Transaction, and Serializing Transactions
 
 ## Wallets
 
@@ -8,7 +8,7 @@ In this iteration, the main functions we'll be interested in are:
 
 1. Generating public/private keys
 2. Storing and retrieving keypairs from the filesystem
-3. Producing and signing transactions
+3. Producing a special type of transaction called a "Coinbase"
 4. Serializing transactions so that they can be distributed
 over the network
 
@@ -62,18 +62,20 @@ OpenSSL package to generate keys and encrypt and decrypt messages.
 ### 2 - Generating a Transaction
 
 A "transaction" represents a transfer of currency from one address to another.
-As we'll see, we use our private key to _sign_ this transfer,
-mathematically proving that we are authorized to transfer the specified
-money.
+If Bitcoin functions as a shared, universal ledger of money transfers, then
+transactions are analagous to individual rows in the ledger (_Blocks_, as we'll
+see later, are analagous to whole pages).
 
-Fundamental to creating a Transaction is the idea of "Transaction Outputs" --
-individual chunks of currency that are available to be transferred.
-When we "spend" coins in Bitcoin, we are actually transferring *Unspent Transaction Outputs*.
-This transfer will in turn generate new Transaction Outputs that could
-later be spent by the new owner as an input to a different transaction.
+Concretely, a Transaction is composed of _inputs_ and _outputs_ -- where
+inputs are our way of referring back to amounts of currency that were previously
+transferred to us, and outputs are our way of transferring these to someone
+else.
 
-Thus we can think of a transaction as a collection of inputs on
-one side and outputs on the other.
+When we "spend" coins in Bitcoin, we are actually transferring *Unspent Transaction Outputs*  -- i.e. Outputs from a previous transaction which have never yet been spent. This transfer will in turn generate new Transaction Outputs that could later be spent by the new owner as an input to a different transaction.
+
+Thus we can think of a transaction as a collection of inputs on one side and outputs on the other.
+
+One slightly tricky point to keep in mind is that in BitCoin we don't simply pull funds out of a single pile representing our "balance." Rather, the system keeps track of all the individual payments that you have received. When you want to pay someone, you're actually transferring one of these specific payments to the new recipient.
 
 Where do the original outputs come from? Ultimately we'll be generating
 them through the mining process. However for now (since we're starting
