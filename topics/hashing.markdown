@@ -67,7 +67,7 @@ Benchmark.measure { Digest::SHA1.hexdigest(wp) }
 Changing even a single character generates a wildly different hash:
 
 ```ruby
-Digest::SHA1.hexdigest("pizzas")
+Digest::SHA1.hexdigest("pizza")
 => "1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217"
 Digest::SHA1.hexdigest("pizzas")
 => "bda42a3d962d7b9cff16183d4bd0b2265c0e2b4e"
