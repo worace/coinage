@@ -8,11 +8,11 @@ The term Cryptography comes from Greek words for "secret writing," and it seems 
 
 ![Top Secret][spy-vs-spy]
 
-There's a lot of interesting stuff to read about in the history of cryptography, but one over-arching trend we can see is a grudging march toward heavy reliance on randomness. The problem, it turns out, is that human language is very _un_-random. Each language has very distinct observable patterns -- in English, for example, we tend to use a lot of vowels, especially "a" and "e" -- and over the years code-breakers were constantly able to use these tendencies to crack into messages. This was especially easy given our tendency to use predictable or formulaic encryption schemes -- rotate letters of the alphabet according to the offsets of a sweetheart's name, a birthdate, etc.
+There's a lot of interesting stuff to read about in the history of cryptography, but one over-arching trend we can see is a grudging march toward reliance on randomness. The problem, it turns out, is that human language is very _un_-random. Each language has very distinct observable patterns -- in English, for example, we tend to use a lot of vowels, especially "a" and "e" -- and code-breakers are able to use these tendencies to crack encrypted messages. This was especially easy given our tendency to use predictable or formulaic encryption schemes -- rotate letters of the alphabet according to the offsets of a sweetheart's name, a birthdate, etc.
 
 Over time, cryptographers had to accept that the only way to reliably encrypt something is to use true randomness to thoroughly scramble a message. This is best embodied in one of the few encryption schemes believed to be truly unbreakable -- the [One-Time Pad][otp].
 
-__A One-Time Pad:__
+__Some one-time pads were very small:__
 
 ![One-Time Pad][otp]
 
@@ -22,10 +22,10 @@ By using random keys, cryptographers were able to escape the inherent predictabi
 
 And this lands us in a bit of a catch-22. We can't share quality random keys securely if we don't have a good crypto scheme. And we can't have a good crypto scheme of we can't share keys securely... If designing good cryptosystems is the first problem of cryptography, then figuring out reasonable key exchange systems rapidly became the second. Especially from a pragmatic perspective, this often became the biggest question when implementing a new cryptosystem -- the algorithm might be exquisite, but if the key exchange can't be worked out then it's no good to anyone.
 
-## Cutting the Gordian Knot with Public-Private Key Cryptography
+## Cutting the Gordian Knot with Public Key Cryptography
 
-> If you would keep your secret from an enemy,
-> tell it not to a friend. - Ben Franklin
+> "If you would keep your secret from an enemy,
+> tell it not to a friend." - Ben Franklin
 
 This all changed in the 1970's with the discovery of Public-Key encryption. Up to this point, cryptosystems had been based on a _symmetric_ approach to encryption and decryption -- that is, the same key is used both for encrypting and for decrypting the message. This imposes the key-exchange difficulty we just looked at since the sender and receiver need to figure out some means of sharing the key without also letting it fall into enemy hands.
 
@@ -43,9 +43,62 @@ A few years later a group of MIT students developed a more generalized system fo
 
 __Sidenote:__ Interestingly, the same approach was actually independently developed a few years earlier by a group of cryptographers working for the British Government, but their research was classified so the world didn't find out about it until the late 90's.
 
+## PK Crypto for Lowly Code Monkeys
+
+So how do we actually use it? Fortunately for us, most of the hard stuff has already been worked out. Not only are the algorithms thoroughly refined and vetted at this point, but most contemporary programming languages include handy library support for common crypto algorithms.
+
+### RSA
+
+In Ruby, for example, the OpenSSL library includes support for the popular RSA algorithm.
+
+Let's look at a few common operations we might like to do with RSA:
+
+* Generate a private key
+* Retrieve the public key associated with the private key
+* Serialize the public key (so that we could share it with someone)
+* Encrypt a message using the public key
+* Decrypt a message using the private key
+
+We can use it to generate a private key:
+
+```ruby
+require 'openssl'
+private_key = OpenSSL::PKey::RSA.generate(1024) # 1024 is the bit-length of the key; longer keys are more secure but also slower
+public_key  = private_key.public_key
+public_key.to_pem # serialize key in PEM format
+public_key.to_der # serialize key in DER format
+
+plaintext = "keep this secret"
+ciphertext = public_key.public_encrypt(plaintext)
+private_key.private_decrypt(ciphertext) == plaintext # => true
+```
+
+### But wait, there's more! -- Signature Verification
+
+Using a public key to encrypt a message that can only be decrypted with the corresponding private key is pretty neat, but what about going the other direction? It turns out that the mathematical relationship between public and private keys also lets us do encryption/decryption in the reverse direction. Using the private key, we can encrypt a message that can be only be decrypted using the corresponding public key.
+
+This isn't particularly useful for actually keeping things secret, since your public key is, well, public. But it does give us an effective way of proving identity. Since encryption via Private Key can only be reversed by the corresponding public key, and the private key is kept secret, we can safely assume that anyone who is able to produce a message that can be validly decrypted with a given Public Key must have access to the corresponding Private Key.
+
+Since this technique establishes identity, we refer to it as **signing** and **verifying**. A user **signs** a message using their Private Key and anyone can use that person's Public Key to **verify** the identity of the signer.
+
+### Signing in Code
+
+We can do this in Ruby as well:
+
+```ruby
+require 'openssl'
+private_key = OpenSSL::PKey::RSA.generate(1024)
+public_key  = private_key.public_key
+
+message = "Sign this to prove your identity..."
+signature = private_key.sign(OpenSSL::Digest::SHA256.new, message)
+public_key.verify(OpenSSL::Digest::SHA256.new, signature, message)
+=> true
+```
+
 <!-- ![NSA](https://upload.wikimedia.org/wikipedia/commons/8/84/National_Security_Agency_headquarters,_Fort_Meade,_Maryland.jpg) -->
 
 [spy-vs-spy]: http://www.codeproject.com/KB/vista-security/ECDH/spy-vs-spy.gif
-[otp]: https://en.wikipedia.org/wiki/One-time_pad
+[otp]: http://www.ranum.com/security/computer_security/papers/otp-faq/otp.jpg
 [one-time-pad-example]: http://association-sas.chez-alice.fr/OneTimePadFrench.JPG
-[keys]: http://www.gubatron.com/blog/wp-content/uploads/2013/05/Screen-Shot-2013-05-30-at-8.45.12-AM.png
+[keys]: https://s-media-cache-ak0.pinimg.com/236x/d5/1a/89/d51a89881e03de7f96793a63118525fd.jpg
