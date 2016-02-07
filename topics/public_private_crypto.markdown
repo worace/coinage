@@ -96,6 +96,13 @@ public_key.verify(OpenSSL::Digest::SHA256.new, signature, message)
 => true
 ```
 
+## Public Keys in Crypocurrencies
+
+It turns out that in the context of cryptocurrency we're actually most interested in this last public key mechanism. We use private key signatures to prove identity of users in the system -- like a vastly more secure version of your bank PIN.
+
+When we transfer funds, we don't assign them to a specific person ("Transfer 10 coins to Jane", etc). Instead, we assign funds to a specific Public Key ("Transfer 10 coins to Jane's Public Key"). Conveniently, this gives us a built-in mechanism for proving our identity when it comes time to spend those funds. Since Jane is the only person with access to the associated Private Key, all she has to do to spend the funds is produce a valid signature that matches the Public Key to which her funds were assigned. Anyone who's watching on the network can verify that the provided signature matches the assigned key, and approve the transaction.
+
+
 <!-- ![NSA](https://upload.wikimedia.org/wikipedia/commons/8/84/National_Security_Agency_headquarters,_Fort_Meade,_Maryland.jpg) -->
 
 [spy-vs-spy]: http://www.codeproject.com/KB/vista-security/ECDH/spy-vs-spy.gif
