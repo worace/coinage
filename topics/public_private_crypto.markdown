@@ -37,16 +37,13 @@ The decryption key, on the other hand, is still precious. Anyone who has it can 
 
 ## So how does it really work?
 
-The short answer is: Math. 
+The short answer is: Math. The general idea of an asymetric encryption system had been around for a while, but it took until the 1970's for the right people to figure out a viable system for making it work. Specifically [Whitfield Diffie](https://en.wikipedia.org/wiki/Whitfield_Diffie) and [Martin Hellman](https://en.wikipedia.org/wiki/Martin_Hellman) developed a system that relies on multiplying large prime numbers to encrypt messages. Cracking the encryption would require an attacker to find the prime factors of a very large number, something which we don't currently have an efficient way to do. This is wildly simplified explanation, but for now we can get by without fully understanding the details.
 
-![Top Secret](http://www.codeproject.com/KB/vista-security/ECDH/spy-vs-spy.gif)
-![NSA](https://upload.wikimedia.org/wikipedia/commons/8/84/National_Security_Agency_headquarters,_Fort_Meade,_Maryland.jpg)
+A few years later a group of MIT students developed a more generalized system for putting Diffie and Hellman's technique into practice. This became known as RSA encryption, after the students Rivest, Shamir, and Adelson, and the rest was history.
 
-* History
-* One-Time Pads
-* Basics
-* Common Algorithms
-* Signing vs. Encrypting
+__Sidenote:__ Interestingly, the same approach was actually independently developed a few years earlier by a group of cryptographers working for the British Government, but their research was classified so the world didn't find out about it until the late 90's.
+
+<!-- ![NSA](https://upload.wikimedia.org/wikipedia/commons/8/84/National_Security_Agency_headquarters,_Fort_Meade,_Maryland.jpg) -->
 
 [spy-vs-spy]: http://www.codeproject.com/KB/vista-security/ECDH/spy-vs-spy.gif
 [otp]: https://en.wikipedia.org/wiki/One-time_pad
