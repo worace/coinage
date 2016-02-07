@@ -179,3 +179,23 @@ Even if our data is somehow compromised, hackers will only have access to the ha
 #### Data Structures
 
 Most programming languages these days include some kind associative Dictionary or Map data structure. A common way to implement these is using a "Hash Map" -- when inserting data into the structure we first compute a cryptographic hash and use this as a unique identifier to determine where to store it. Some clever tricks allow this to be done extremely efficiently, even as the size of the data set grows. This is where Ruby gets the name for its "Hash" data structure.
+
+## Exercise: The Simplest Miner
+
+You now have all the information you need to try your hand at a basic mining algorithm! Consider the example we looked at earlier, using a simplistic "block" structure:
+
+`pay <number> coins to <user>. Nonce: <nonce goes here>`
+
+Take this format and try writing a program that can take as inputs a number of coins, a user, and a target and produce a valid block which produces a hash smaller than the provided target.
+
+For example, in Ruby using this program might look like:
+
+```
+mine_block(10, "Suzy", "00ffffffffffffffffffffffffffffffffffffff")
+=> "Pay 10 coins to Suzy. Nonce: 11"
+```
+
+Try it with a "large" target first, then experiment to see what happens to your nonces as you make the target smaller.
+
+
+**Note:** In these examples I've been using the SHA-1 hashing algorithm, which produces a 160-bit hash, or a 40-digit hash when written in Base-16. This means the largest possible hash is `ffffffffffffffffffffffffffffffffffffffff`. The smallest is, of course, 0.
