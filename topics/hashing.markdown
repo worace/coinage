@@ -15,18 +15,76 @@ $ ruby -e "puts({}.class)"
 Hash
 ```
 
-Rather "Hashing" refers to a type of cryptographic function designed to take an arbitrary amount of data and reduce it down to a numeric fingerprint (often called a "digest" or just a "hash"). For example, using the SHA1 hashing function, if we input the string "pizza", we'll get the following fingerprint: "1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217".
+Rather "Hashing" refers to a type of cryptographic function designed to take an arbitrary amount of data and reduce it down to a numeric fingerprint (often called a "digest" or just a "hash"). For example, using the SHA1 hashing function, if we input the string `pizza`, we'll get the following fingerprint: `1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217`.
 
-It's important to note that while we often represent these hashes using what looks like a textual string, they are really numbers, in this case being represented in hexadecimal. If we represent the SHA-1 hash of "pizza" in Base-10, it looks like: `179405067335283640084579532467505022408577155607`. This ability to numerically manipulate hash digests comes up in a variety of applications.
+This represents a numeric distillation of the data contained in our original string (we frequently represent hash digests using hexadecimal -- if we converted this one to Base-10 it would be `179405067335283640084579532467505022408577155607`)
 
-There are a few properties of a good hash function that make this ability particularly useful:
+There are a few properties of a good hash function that make them extremely powerful:
 
 1. It's quick to generate a single hash. This makes it easy, for example, to verify that a hash and a piece of data match, since I can just hash the data and check that the hashes match.
-2. The fingerprint for a piece of data should be unique to that piece of data (hence the fingerprint analogy. this property is known as __Collision Resistance__)
+2. The fingerprint for a piece of data should be unique to that piece of data (hence the fingerprint analogy). This property is known as __Collision Resistance__.
 3. Given a fingerprint, it's extremely difficult to guess what data was used to produce it. Hashing functions are considered **one-way functions**.
-4. Even a small change to the input data will result in a wildly different hash being generated. This property is referred to as an **Avalanche Effect**, since a minor input change of even a single bit triggers an "avalanche" of changes to the resulting fingerprint.
+4. Even a small change to the input data will result in a wildly different hash being generated. This property is referred to as an **Avalanche Effect**, since a minor input change of even a single bit triggers an "avalanche" of changes to the resulting fingerprint. It has the effect of making it impossible to "guess" what hash will be produced by a given value.
 
-There are a lot of hashing functions out there, but some common ones you might encounter included:
+As a quick demonstration of these properties, we can see:
+
+Computing a single hash is fast:
+
+```ruby
+require "benchmark"
+Benchmark.measure { Digest::SHA1.hexdigest("pizza") }
+=> #<Benchmark::Tms:0x005609f43babb0
+ @cstime=0.0,
+ @cutime=0.0,
+ @label="",
+ @real=1.732500095386058e-05,
+ @stime=0.0,
+ @total=0.0,
+ @utime=0.0>
+```
+
+And even hashing a large volume of data (such as the full text of _War and Peace_) is fast:
+
+```ruby
+require "benchmark"
+require "uri"
+require "net/http"
+wp = Net::HTTP.get(URI.parse("http://www.gutenberg.org/cache/epub/2600/pg2600.txt"));nil
+=> nil
+wp.length
+=> 3291648
+Benchmark.measure { Digest::SHA1.hexdigest(wp) }
+=> #<Benchmark::Tms:0x005609f429a690
+ @cstime=0.0,
+ @cutime=0.0,
+ @label="",
+ @real=0.012472041000364698,
+ @stime=0.0,
+ @total=0.010000000000000009,
+ @utime=0.010000000000000009>
+```
+
+Changing even a single character generates a wildly different hash:
+
+```ruby
+Digest::SHA1.hexdigest("pizzas")
+=> "1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217"
+Digest::SHA1.hexdigest("pizzas")
+=> "bda42a3d962d7b9cff16183d4bd0b2265c0e2b4e"
+```
+
+There's no such thing as "un-hashing" a hash. If I try to input a hash to the function, I simply get another, unpredictable hash:
+
+```ruby
+Digest::SHA1.hexdigest("pizza")
+=> "1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217"
+Digest::SHA1.hexdigest("1f6ccd2be75f1cc94a22a773eea8f8aeb5c68217")
+=> "5164567b8c09824c324baea74a8264cc4536a30f"
+```
+
+#### Common Hashing Functions
+
+There are a lot of hashing functions out there, but some common ones you might encounter include:
 
 * MD5 (often used for open source software checksums; now considered less secure)
 * SHA-1 (used by git)
@@ -39,7 +97,7 @@ There are a lot of hashing functions out there, but some common ones you might e
 We see hashes come up in a lot of places in Bitcoin, generally to serve 2 purposes:
 
 1. As a unique identifier (fingerprint) for a piece of information -- we'll generally refer to Blocks and Transactions by their hashes. Since each block and each transaction are unique, and the hashes are derived from the data they contain, the hashes are also unique, and thus serve as a reliable way to refer to a specific item.
-2. As a way to secure the network via a **Proof of Work** algorithm. This is the essence of the mining process, and we'll look at it in more detail now.
+2. As a way to secure the network by providing **Proof of Work** for certain actions. This is the essence of the mining process, and we'll look at it in more detail now.
 
 #### Proof of Work
 
