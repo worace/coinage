@@ -230,6 +230,12 @@ to one of your peers. No response required
 * Echo - `echo` - payload: arbitrary - Node should respond with the same payload that
 was sent
 
+__RESPONSE TYPES -- Fill these in__
+
+* `blocks` (list of blocks in resp to `get_blocks`)
+* `block_info` (single block info in resp to `get_block`)
+* `transaction_info` (single txn info in resp to `get_transaction`)
+
 ## Automated TCP Protocol Spec
 
 ## References
